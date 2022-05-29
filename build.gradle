@@ -45,7 +45,7 @@ apply plugin: 'signing'
 apply plugin: 'maven-publish'
 
 dependencies {
-  api group: 'org.json', name: 'json', version: '20211205'
+  api group: 'org.json', name: 'json', version: '20220320'
   api group: 'org.yaml', name: 'snakeyaml', version: '1.30'
   api group: 'org.eclipse.milo', name: 'sdk-server', version: '0.6.6'
   api group: 'org.jgroups', name: 'jgroups', version: '5.2.2.Final'
