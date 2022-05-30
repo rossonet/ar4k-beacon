@@ -19,7 +19,7 @@ apply plugin: 'signing'
 apply plugin: 'maven-publish'
 apply plugin: 'java-library'
 
-description = "configuration objects of ar4k-beacon"
+description = "client objects of ar4k-beacon"
 group = 'org.ar4k.agent'
 version = rootProject.version
 
@@ -66,8 +66,8 @@ publishing {
         }
       }
       pom {
-        name = 'ar4k-bee configuration API'
-        description = 'Configuration objects related to ar4k-beacon project'
+        name = 'ar4k-beacon client API'
+        description = 'Client objects related to ar4k-beacon project'
         url = 'https://app.rossonet.net/'
         licenses {
           license {
@@ -85,7 +85,7 @@ publishing {
         scm {
           connection = 'scm:git:git://github.com/rossonet/ar4k-beacon.git'
           developerConnection = 'scm:git:ssh://github.com:rossonet/ar4k-beacon.git'
-          url = 'https://github.com/rossonet/ar4k-bee/tree/master'
+          url = 'https://github.com/rossonet/ar4k-beacon/tree/master'
         }
       }
     }

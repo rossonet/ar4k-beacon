@@ -66,7 +66,7 @@ publishing {
         }
       }
       pom {
-        name = 'ar4k-bee configuration API'
+        name = 'ar4k-beacon configuration API'
         description = 'Configuration objects related to ar4k-beacon project'
         url = 'https://app.rossonet.net/'
         licenses {
@@ -85,7 +85,7 @@ publishing {
         scm {
           connection = 'scm:git:git://github.com/rossonet/ar4k-beacon.git'
           developerConnection = 'scm:git:ssh://github.com:rossonet/ar4k-beacon.git'
-          url = 'https://github.com/rossonet/ar4k-bee/tree/master'
+          url = 'https://github.com/rossonet/ar4k-beacon/tree/master'
         }
       }
     }

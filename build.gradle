@@ -48,9 +48,8 @@ dependencies {
   api group: 'org.json', name: 'json', version: '20211205'
   api group: 'org.yaml', name: 'snakeyaml', version: '1.30'
   api group: 'org.eclipse.milo', name: 'sdk-server', version: '0.6.6'
-  api group: 'org.jgroups', name: 'jgroups', version: '5.2.2.Final'
+  api 'io.lettuce:lettuce-core:6.1.8.RELEASE'
   api project(':ar4k-beacon-api')
-  api 'org.jeasy:easy-rules:4.1.0'
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
   testImplementation group: 'com.ginsberg', name: 'junit5-system-exit', version: '1.1.2'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
@@ -188,7 +187,7 @@ publishing {
       }
       pom {
         name = 'Ar4k Beacon'
-        description = 'Ar4k Beacon componente, Opc Ua Server'
+        description = 'Ar4k Beacon component, Opc Ua Server'
         url = 'https://app.rossonet.net/'
         licenses {
           license {
@@ -204,9 +203,9 @@ publishing {
           }
         }
         scm {
-          connection = 'scm:git:git://github.com/rossonet/ar4k-bee.git'
-          developerConnection = 'scm:git:ssh://github.com:rossonet/ar4k-bee.git'
-          url = 'https://github.com/rossonet/ar4k-bee/tree/master'
+          connection = 'scm:git:git://github.com/rossonet/ar4k-beacon.git'
+          developerConnection = 'scm:git:ssh://github.com:rossonet/ar4k-beacon.git'
+          url = 'https://github.com/rossonet/ar4k-beacon/tree/master'
         }
       }
     }
