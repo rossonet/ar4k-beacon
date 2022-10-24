@@ -1,0 +1,5 @@
+FROM openjdk:8-jdk-alpine
+RUN apk add --no-cache bash gawk sed grep bc coreutils wget binutils
+COPY savumerkki-savuctl-0.1.0-all.jar terminal-client.jar
+ENTRYPOINT ["java"]
+CMD ["-XX:+UseParallelGC","-XX:MinHeapFreeRatio=10","-XX:MaxHeapFreeRatio=20","-XX:GCTimeRatio=4","-XX:AdaptiveSizePolicyWeight=90","-XX:+ExitOnOutOfMemoryError","-XX:+UnlockExperimentalVMOptions","-Djava.net.preferIPv4Stack=true","-XX:+UseCGroupMemoryLimitForHeap","-XshowSettings:vm","-Djava.security.egd=file:/dev/./urandom","-jar","/terminal-client.jar"]

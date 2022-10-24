@@ -1,0 +1,252 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    jcenter()
+    maven { url "https://plugins.gradle.org/m2/" }
+  }
+  dependencies {
+    classpath "com.gorylenko.gradle-git-properties:gradle-git-properties:2.4.0"
+    classpath 'com.netflix.nebula:gradle-ospackage-plugin:8.4.1'
+    classpath 'de.undercouch:gradle-download-task:3.1.1'
+    classpath 'gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.0.0'
+    classpath "com.palantir.gradle.docker:gradle-docker:0.32.0"
+  }
+}
+
+plugins {
+   id 'org.graalvm.buildtools.native' version '0.9.14'
+}
+
+
+description = "Ar4k Beacon command line interface (beaconctl)"
+group = rootProject.group
+version = rootProject.version
+
+ext {
+  sourceCompatibility = 1.8
+  packageName = 'beaconctl'
+}
+
+repositories {
+  mavenCentral()
+  jcenter()
+}
+
+apply plugin: 'com.palantir.docker'
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'eclipse'
+apply plugin: "com.gorylenko.gradle-git-properties"
+apply plugin: 'jacoco'
+apply plugin: "nebula.rpm"
+apply plugin: 'nebula.deb'
+apply plugin: 'base'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'distribution'
+apply plugin: 'signing'
+apply plugin: 'maven-publish'
+
+dependencies {
+  implementation project(':beacon-core')
+  implementation 'org.jline:jline:3.21.0'
+  implementation group: 'com.github.oshi', name: 'oshi-core', version: '6.2.2'
+  implementation 'commons-logging:commons-logging:1.2'
+  // testing
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+  testImplementation group: 'com.ginsberg', name: 'junit5-system-exit', version: '1.1.2'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+jar {
+  manifest {
+    attributes 'Main-Class': 'net.rossonet.beacon.beaconctl.Beaconctl'
+  }
+}
+
+application {
+    mainClass = 'net.rossonet.beacon.beaconctl.Beaconctl'
+}
+
+graalvmNative {
+    toolchainDetection = false
+    binaries {
+        main {
+            verbose = true
+            sharedLibrary = false
+            buildArgs.add("--initialize-at-build-time=org.slf4j.LoggerFactory")
+            buildArgs.add("--initialize-at-build-time=org.slf4j.simple.SimpleLogger")
+            buildArgs.add("--initialize-at-build-time=org.slf4j.impl.StaticLoggerBinder")
+        }
+    }
+}
+
+
+docker {
+  name "rossonet.net/${project.name}:latest"
+  dockerfile file('Dockerfile.gradle')
+  files "$buildDir/libs/${project.name}-${version}-all.jar"
+}
+
+task makeTerminalClientNative(){
+  group "build ${project.name}"
+  description "Build ${project.name} in native format"
+  makeTerminalClientNative.dependsOn("nativeCompile")
+}
+
+task makeTerminalClientDocker(){
+  group "build ${project.name}"
+  description "Build ${project.name} in docker format"
+  makeTerminalClientDocker.dependsOn("buildDocker")
+}
+  
+
+task makeTerminalClientRpmPackage(type: Rpm){
+  group "build ${project.name}"
+  description "Build ${project.name} in RPM package format"
+  makeTerminalClientRpmPackage.dependsOn("shadowJar")
+  requires('java-1.8.0-openjdk')
+  packageName "${project.ext.packageName}"
+  version "${project.version}"
+  release "1"
+  user 'root'
+  os 'LINUX'
+  url 'https://github.com/rossonet/Savumerkki'
+  summary "${project.name}"
+  packageDescription "${project.description}"
+  license 'Apache-2.0'
+  provides "${project.name}"
+  from('build/libs'){
+    into "/opt/rossonet/${project.name}"
+    fileMode 0755
+  }
+  directory("/opt/rossonet/${project.name}")
+  link("/opt/rossonet/${project.name}/${project.ext.packageName}.jar","/opt/rossonet/${project.name}/${project.name}-${project.version}.jar")
+  link("/opt/rossonet/${project.name}/${project.ext.packageName}","/opt/rossonet/${project.name}/${project.name}-${project.version}.jar")
+  link("/opt/rossonet/${project.name}/botcli.jar","/opt/rossonet/${project.name}/${project.name}-${project.version}.jar")
+  link("/usr/bin/${project.ext.packageName}","/opt/rossonet/${project.name}/${project.name}-${project.version}.jar")
+}
+
+task makeTerminalClientDebianPackage(type: Deb){
+  group "build ${project.name}"
+  description "Build ${project.name} in DEB package format"
+  makeTerminalClientDebianPackage.dependsOn("shadowJar")
+  requires('default-jdk')
+  packageName "${project.ext.packageName}"
+  version "${project.version}"
+  release "1"
+  user 'root'
+  os 'LINUX'
+  url "https://github.com/rossonet/Savumerkki"
+  summary "${project.name}"
+  packageDescription "${project.description}"
+  license 'Apache-2.0'
+  provides "${project.name}"
+  from('build/libs'){
+    into "/opt/rossonet/${project.name}"
+    fileMode 0755
+  }
+  directory("/opt/rossonet/${project.name}")
+  link("/opt/rossonet/${project.name}/${project.ext.packageName}.jar","/opt/rossonet/${project.name}/${project.name}-${project.version}.jar")
+  link("/opt/rossonet/${project.name}/${project.ext.packageName}","/opt/rossonet/${project.name}/${project.name}-${project.version}.jar")
+  link("/opt/rossonet/${project.name}/botcli.jar","/opt/rossonet/${project.name}/${project.name}-${project.version}.jar")
+  link("/usr/bin/${project.ext.packageName}","/opt/rossonet/${project.name}/${project.name}-${project.version}.jar")
+}
+
+task buildDocker() {
+  buildDocker.dependsOn("shadowJar")
+  buildDocker.finalizedBy("docker")
+}
+
+shadowJar {
+  minimize()
+}
+
+test {
+  useJUnitPlatform()
+}
+
+eclipse {
+    classpath {
+    downloadJavadoc = true
+    downloadSources = true
+  }
+}
+
+java {
+  withJavadocJar()
+  withSourcesJar()
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication){
+      artifactId = "${project.name}"
+      from components.java
+      versionMapping {
+        usage('java-api') {
+          fromResolutionOf('runtimeClasspath')
+        }
+        usage('java-runtime') {
+          fromResolutionResult()
+        }
+      }
+      pom {
+        name = "${project.name}"
+        description = "${project.description}"
+        url = 'https://app.rossonet.net/'
+        licenses {
+          license {
+            name = 'Apache-2.0 license'
+            url = 'https://www.apache.org/licenses/LICENSE-2.0'
+          }
+        }
+        developers {
+          developer {
+            id = 'ar4k'
+            name = 'Andrea Ambrosini'
+            email = 'andrea.ambrosini@rossonet.org'
+          }
+        }
+        scm {
+          connection = 'scm:git:git://github.com/rossonet/Savumerkki.git'
+          developerConnection = 'scm:git:ssh://github.com:rossonet/Savumerkki.git'
+          url = 'https://github.com/rossonet/Savumerkki/tree/master'
+        }
+      }
+    }
+  }
+  repositories {
+    maven {
+      url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+      name = "sonatype"
+      credentials {
+        username "rossonet"
+        password "${rootProject.ext.ossrhPassword}"
+      }
+    }
+  }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+gitProperties {
+  failOnNoGitDirectory = false
+  customProperty 'component', "${project.name}"
+  customProperty 'version', "${version}"
+  dateFormat = "yyyy-MM-dd HH:mm:ssZ"
+  dateFormatTimeZone = 'GMT'
+}
+
+jacocoTestReport {
+  reports {
+    xml.enabled true
+    html.enabled false
+  }
+}
+
+javadoc{
+  destinationDir = file("${rootProject.buildDir}/docs/javadoc/${project.name}/")
+  failOnError=true
+}

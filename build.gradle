@@ -1,27 +1,9 @@
-buildscript {
-  repositories {
-    mavenCentral()
-    jcenter()
-    maven { url "https://plugins.gradle.org/m2/" }
-  }
-  dependencies {
-    classpath "com.gorylenko.gradle-git-properties:gradle-git-properties:2.4.0"
-    classpath 'com.netflix.nebula:gradle-ospackage-plugin:8.4.1'
-    classpath 'de.undercouch:gradle-download-task:3.1.1'
-    classpath 'gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.0.0'
-    classpath "com.palantir.gradle.docker:gradle-docker:0.32.0"
-  }
-}
-
-description = "OPC UA Server for agent exchange"
-group = 'org.ar4k.agent'
-version = '0.0.5'
+description = "java library to manage the data flow in IIoT context"
+group = 'org.rossonet.beacon'
+version = '0.1.0'
 
 ext {
 	sourceCompatibility = 1.8
-	ar4kVersion = '0.9.1014'
-	debianName = "${project.name}"
-	packageName = "${project.name}"
 	ossrhPassword = System.getenv('OSSRH_PASSWORD')
 }
 
@@ -30,30 +12,7 @@ repositories {
 	jcenter()
 }
 
-apply plugin: 'com.palantir.docker'
-apply plugin: 'java'
-apply plugin: 'java-library'
 apply plugin: 'eclipse'
-apply plugin: "com.gorylenko.gradle-git-properties"
-apply plugin: 'jacoco'
-apply plugin: "nebula.rpm"
-apply plugin: 'nebula.deb'
-apply plugin: 'base'
-apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'distribution'
-apply plugin: 'signing'
-apply plugin: 'maven-publish'
-
-dependencies {
-  api group: 'org.json', name: 'json', version: '20211205'
-  api group: 'org.yaml', name: 'snakeyaml', version: '1.30'
-  api group: 'org.eclipse.milo', name: 'sdk-server', version: '0.6.6'
-  api 'io.lettuce:lettuce-core:6.1.8.RELEASE'
-  api project(':ar4k-beacon-api')
-  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-  testImplementation group: 'com.ginsberg', name: 'junit5-system-exit', version: '1.1.2'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-}
 
 task eclipseClosedDependencies {}
 
@@ -61,80 +20,26 @@ task eclipseClosedDependencies_ {}
 
 eclipse {
 	classpath {
-	downloadJavadoc = true
-	downloadSources = true
+	    downloadJavadoc = true
+	    downloadSources = true
 	}
-}
-
-docker {
-  name "rossonet/ar4k-beacon:latest"
-  dockerfile file('Dockerfile.gradle')
-  files "$buildDir/libs/${project.name}-${version}-all.jar"
 }
 
 task view { doLast { println "Working on project ${project.name} [ ${project.description} ]" } }
 
-jar {
-  manifest {
-    attributes 'Main-Class': 'org.ar4k.agent.Ar4kAgent'
-  }
-  enabled = true
-}
-
-jar.doLast { task ->
-	ant.checksum file: task.archivePath
-}
-
-task buildDocker() {
-  group "Ar4k Build"
-  description 'Build Docker image'
-  buildDocker.dependsOn("shadowJar")
-  buildDocker.finalizedBy("docker")
-}
-
-shadowJar {
-  minimize()
-}
-
-java {
-  withJavadocJar()
-  withSourcesJar()
-}
-
-gitProperties {
-	failOnNoGitDirectory = false
-	customProperty 'ar4kComponent', "${project.name}"
-	customProperty 'ar4kVersion', "${version}"
-	dateFormat = "yyyy-MM-dd HH:mm:ssZ"
-	dateFormatTimeZone = 'GMT'
-}
-
-task endBootJar {
-	doLast{ println ("You can find the fat jar of ${project.name} in ${jar.archivePath}") }
-}
-
-test {
-  useJUnitPlatform()
-}
-
-javadoc{
-	destinationDir = file("${project.buildDir}/docs/javadoc/${project.name}/")
-	failOnError=false
-}
-
 task theiaIdeBackend(type: Exec) {
         workingDir "./"
-        commandLine 'docker', 'run', '--init', '-p', '3000:3000', '-d', '-v', "${projectDir}:/home/project:cached", 'rossonet/theia-ide:latest'
+        commandLine 'docker', 'run', '--init', '--rm', '-p', '3000:3000', '-d', '-v', "${projectDir}:/home/project:cached", 'rossonet/theia-ide:latest'
 }
 
 task theiaIdeBackendNoCached(type: Exec) {
         workingDir "./"
-        commandLine 'docker', 'run', '--init', '-p', '3000:3000', '-d', '-v', "${projectDir}:/home/project", 'rossonet/theia-ide:latest'
+        commandLine 'docker', 'run', '--init', '--rm', '-p', '3000:3000', '-d', '-v', "${projectDir}:/home/project", 'rossonet/theia-ide:latest'
 }
 
 task theiaIdeBackendNoVolume(type: Exec) {
         workingDir "./"
-        commandLine 'docker', 'run', '--init', '-p', '3000:3000', '-d', '--name', "docker-ide-${project.name}", 'rossonet/theia-ide:latest'
+        commandLine 'docker', 'run', '--init', '--rm', '-p', '3000:3000', '-d', '--name', "docker-ide-${project.name}", 'rossonet/theia-ide:latest'
 }
 
 task theiaIdeBackendCopy(type: Exec) {
@@ -149,6 +54,8 @@ task theiaIdeBackendStart(type: Exec) {
         group "Theia IDE on Docker Container"
         workingDir "./"
         commandLine 'docker', 'exec', '-u', 'root', "docker-ide-${project.name}", '/bin/chown', '-R', 'theia:theia', '/home/project'
+        doLast { println "\n\n*** You can find the Theia IDE at http://localhost:3000 ***" }
+        doLast { println "To shutdown the IDE:\ndocker stop docker-ide-${project.name}\n- save your work on repository before!\n\n" }
 }
 
 task printTheiaIdeBackendDockerCommand(type: Exec) {
@@ -158,70 +65,8 @@ task printTheiaIdeBackendDockerCommand(type: Exec) {
 
 task theiaIdeLocalBrowser(type: Exec) {
         group "Theia IDE on Docker Container"
-  	    description 'Open browser to local Theia IDE'
+        description 'Open browser to local Theia IDE'
         workingDir "./"
         commandLine 'xdg-open', 'http://localhost:3000'
 }
 
-task cleanGradleCache {
-	group "Cache Workaround"
-	description 'Remove Rossonet artifacts from local Gradle cache'
-	delete "~/.gradle/caches/*/*/net.rossonet"
-	delete "~/.gradle/caches/*/*/descriptors/net.rossonet"
-	delete "~/.gradle/caches/*/*/ar4k-agent"
-	delete "~/.gradle/caches/*/*/descriptors/ar4k-agent"
-}
-
-publishing {
-  publications {
-    mavenJava(MavenPublication){
-      artifactId = "${project.name}"
-      from components.java
-      versionMapping {
-        usage('java-api') {
-          fromResolutionOf('runtimeClasspath')
-        }
-        usage('java-runtime') {
-          fromResolutionResult()
-        }
-      }
-      pom {
-        name = 'Ar4k Beacon'
-        description = 'Ar4k Beacon component, Opc Ua Server'
-        url = 'https://app.rossonet.net/'
-        licenses {
-          license {
-            name = 'GNU AFFERO GENERAL PUBLIC LICENSE 3.0'
-            url = 'https://www.gnu.org/licenses/agpl-3.0.html'
-          }
-        }
-        developers {
-          developer {
-            id = 'ar4k'
-            name = 'Andrea Ambrosini'
-            email = 'andrea.ambrosini@rossonet.org'
-          }
-        }
-        scm {
-          connection = 'scm:git:git://github.com/rossonet/ar4k-beacon.git'
-          developerConnection = 'scm:git:ssh://github.com:rossonet/ar4k-beacon.git'
-          url = 'https://github.com/rossonet/ar4k-beacon/tree/master'
-        }
-      }
-    }
-  }
-  repositories {
-    maven {
-      url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-      name = "sonatype"
-      credentials {
-        username "rossonet"
-        password "${ossrhPassword}"
-      }
-    }
-  }
-}
-
-signing {
-    sign publishing.publications.mavenJava
-}

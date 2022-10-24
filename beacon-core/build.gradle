@@ -1,0 +1,176 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    jcenter()
+    maven { url "https://plugins.gradle.org/m2/" }
+  }
+  dependencies {
+    classpath "com.gorylenko.gradle-git-properties:gradle-git-properties:2.4.0"
+    classpath 'de.undercouch:gradle-download-task:3.1.1'
+  }
+}
+
+description = rootProject.description
+group = rootProject.group
+version = rootProject.version
+
+ext {
+	sourceCompatibility = 1.8
+}
+
+repositories {
+	mavenCentral()
+	jcenter()
+}
+
+apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'eclipse'
+apply plugin: "com.gorylenko.gradle-git-properties"
+apply plugin: 'jacoco'
+apply plugin: 'base'
+apply plugin: 'distribution'
+apply plugin: 'signing'
+apply plugin: 'maven-publish'
+
+dependencies {
+
+  // Test Tools
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+  testImplementation group: 'com.ginsberg', name: 'junit5-system-exit', version: '1.1.2'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+  testImplementation 'org.slf4j:slf4j-simple:2.0.3'
+}
+
+task eclipseClosedDependencies {}
+
+task eclipseClosedDependencies_ {}
+
+eclipse {
+	classpath {
+	    downloadJavadoc = true
+	    downloadSources = true
+	}
+}
+
+task view { doLast { println "Working on project ${project.name} [ ${project.description} ]" } }
+
+jar.doLast { task ->
+	ant.checksum file: task.archivePath
+}
+
+java {
+  withJavadocJar()
+  withSourcesJar()
+}
+
+gitProperties {
+	failOnNoGitDirectory = false
+	customProperty 'component', "${project.name}"
+	dateFormat = "yyyy-MM-dd HH:mm:ssZ"
+	dateFormatTimeZone = 'GMT'
+}
+
+test {
+  useJUnitPlatform()
+}
+
+javadoc{
+	destinationDir = file("${project.buildDir}/docs/javadoc/${project.name}/")
+	failOnError=false
+}
+
+task theiaIdeBackend(type: Exec) {
+        workingDir "./"
+        commandLine 'docker', 'run', '--init', '-p', '3000:3000', '-d', '-v', "${projectDir}:/home/project:cached", 'rossonet/theia-ide:latest'
+}
+
+task theiaIdeBackendNoCached(type: Exec) {
+        workingDir "./"
+        commandLine 'docker', 'run', '--init', '-p', '3000:3000', '-d', '-v', "${projectDir}:/home/project", 'rossonet/theia-ide:latest'
+}
+
+task theiaIdeBackendNoVolume(type: Exec) {
+        workingDir "./"
+        commandLine 'docker', 'run', '--init', '-p', '3000:3000', '-d', '--name', "docker-ide-${project.name}", 'rossonet/theia-ide:latest'
+}
+
+task theiaIdeBackendCopy(type: Exec) {
+        theiaIdeBackendCopy.dependsOn("theiaIdeBackendNoVolume")
+        workingDir "./"
+        commandLine 'docker', 'cp', '.', "docker-ide-${project.name}:/home/project/"
+}
+
+task theiaIdeBackendStart(type: Exec) {
+        description 'Run Theia IDE container with docker'
+        theiaIdeBackendStart.dependsOn("theiaIdeBackendCopy")
+        group "Theia IDE on Docker Container"
+        workingDir "./"
+        commandLine 'docker', 'exec', '-u', 'root', "docker-ide-${project.name}", '/bin/chown', '-R', 'theia:theia', '/home/project'
+}
+
+task printTheiaIdeBackendDockerCommand(type: Exec) {
+        workingDir "./"
+        commandLine 'echo', 'docker', 'run', '--init', '-p', '3000:3000', '-d', '--name', "docker-ide-${project.name}", 'rossonet/theia-ide:latest'
+}
+
+task theiaIdeLocalBrowser(type: Exec) {
+        group "Theia IDE on Docker Container"
+        description 'Open browser to local Theia IDE'
+        workingDir "./"
+        commandLine 'xdg-open', 'http://localhost:3000'
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication){
+      artifactId = "${project.name}"
+      from components.java
+      versionMapping {
+        usage('java-api') {
+          fromResolutionOf('runtimeClasspath')
+        }
+        usage('java-runtime') {
+          fromResolutionResult()
+        }
+      }
+      pom {
+        name = "${project.name}"
+        description = "${project.description}"
+        url = 'https://app.rossonet.net/'
+        licenses {
+          license {
+            name = 'Apache-2.0 license'
+            url = 'https://www.apache.org/licenses/LICENSE-2.0'
+          }
+        }
+        developers {
+          developer {
+            id = 'ar4k'
+            name = 'Andrea Ambrosini'
+            email = 'andrea.ambrosini@rossonet.org'
+          }
+        }
+        scm {
+          connection = 'scm:git:git://github.com/rossonet/ar4k-beacon.git'
+          developerConnection = 'scm:git:ssh://github.com:rossonet/ar4k-beacon.git'
+          url = 'https://github.com/rossonet/ar4k-beacon/tree/master'
+        }
+      }
+    }
+  }
+  repositories {
+    maven {
+      url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+      name = "sonatype"
+      credentials {
+        username "rossonet"
+        password "${rootProject.ext.ossrhPassword}"
+      }
+    }
+  }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}

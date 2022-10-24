@@ -11,7 +11,6 @@ pluginManagement {
         }
     }
 }
-rootProject.name = 'ar4k-beacon'
-include 'ar4k-beacon-api'
-include 'ar4k-beacon-client'
-
+rootProject.name = 'Beacon'
+include 'beacon-core'
+include 'beacon-beaconctl'
