@@ -1,15 +1,14 @@
-package net.rossonet.savumerkki.savuctl;
+package net.rossonet.beacon.beaconctl.test;
 
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
-
-import net.rossonet.beacon.beaconctl.Beaconctl;
-
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+
+import net.rossonet.beacon.beaconctl.Beaconctl;
 
 @TestMethodOrder(OrderAnnotation.class)
 public class ConsoleTest {
@@ -18,7 +17,7 @@ public class ConsoleTest {
 	@Test
 	@Order(1)
 	public void checkApp() throws Exception {
-		Beaconctl.runApp();
+		Beaconctl.runApp(new String[0]);
 		logger.info("ok");
 	}
 

@@ -42,14 +42,20 @@ public class Beaconctl {
 	}
 
 	public static void main(final String[] args) {
+		runApp(args);
+	}
+
+	public static void runApp(final String[] args) {
+		logger.info("starting beaconctl");
 		// TODO metodo avvio
+
 	}
 
 	public static void setIdentLevelStatusFile(final int identLevelStatusFile) {
 		Beaconctl.identLevelStatusFile = identLevelStatusFile;
 	}
 
-	public static void stopSavuctl() {
+	public static void stopBeaconctl() {
 		Beaconctl.running = false;
 	}
 
