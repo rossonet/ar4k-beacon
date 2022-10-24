@@ -19,6 +19,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import org.rossonet.beacon.utils.LogHelper;
+
+import net.rossonet.beacon.nifi.NiFiWrapper;
+
 /**
  * Classe main per avvio
  *
@@ -46,7 +50,23 @@ public class Beaconctl {
 	}
 
 	public static void runApp(final String[] args) {
+		Thread.currentThread().setName("beacon-main");
 		logger.info("starting beaconctl");
+		logger.info("starting Apache NiFi");
+		NiFiWrapper nifi = null;
+		try {
+			nifi = new NiFiWrapper();
+		} catch (final IOException e1) {
+			logger.severe("exception starting Apache NiFi\n" + LogHelper.stackTraceToString(e1));
+		}
+		while (running) {
+			try {
+				Thread.sleep(WHILE_DELAY);
+			} catch (final InterruptedException e) {
+				logger.severe("exception in main thread\n" + LogHelper.stackTraceToString(e));
+			}
+		}
+		nifi.stopNifi();
 		// TODO metodo avvio
 
 	}
