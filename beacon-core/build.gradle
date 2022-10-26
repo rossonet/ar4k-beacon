@@ -36,6 +36,7 @@ apply plugin: 'maven-publish'
 dependencies {
   api group: 'org.apache.flink', name: 'flink-java', version: '1.15.2'
   api group: 'org.apache.flink', name: 'flink-streaming-java', version: '1.15.2'
+  api group: 'org.apache.flink', name: 'flink-clients', version: '1.15.2'
   api group: 'org.eclipse.milo', name: 'sdk-client', version: '0.6.8'
   api group: 'org.eclipse.milo', name: 'sdk-server', version: '0.6.8'
   api group: 'org.eclipse.milo', name: 'dictionary-manager', version: '0.6.8'
