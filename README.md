@@ -7,13 +7,39 @@
 
 [![Beacon Logo](https://raw.githubusercontent.com/rossonet/ar4k-beacon/master/artwork/ar4k-beacon.png)](https://github.com/rossonet/ar4k-beacon)
 
-# AR4k Beacon - engine Java API
+# Build and run on docker
+
+To build the container
+```
+docker build --rm -t rossonet/ar4k-beacon:latest .
+Sending build context to Docker daemon  121.8MB
+Step 1/14 : FROM ubuntu:20.04 as ar4k-builder
+ ---> 817578334b4d
+Step 2/14 : RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y openjdk-8-jdk
+ ---> Using cache
+ ---> 83ca1feebe88
+Step 3/14 : COPY . /ar4kAgent
+[...]
+Step 13/14 : COPY --from=ar4k-builder /result/beaconctl.jar /beaconctl.jar
+ ---> cf9f6ec3cf21
+Step 14/14 : COPY --from=ar4k-builder /result/beacon-template-nifi-processor.nar /opt/nifi/nifi-current/lib/beacon-template-nifi-processor.nar
+ ---> 9fb19b09f9fd
+Successfully built 9fb19b09f9fd
+Successfully tagged rossonet/ar4k-beacon:latest
+```
+
+Run the container
+```
+docker run -it --rm -p 8080:8080 rossonet/ar4k-beacon:latest
+```
+
+
+## AR4k Beacon - API
 
 TODO: description
 
-# AR4K Beacon client interface (beaconctl)
+## AR4K Beacon Server runner (beaconctl)
 
-This command line interface
 TODO: description
 
 ### Project sponsor 
