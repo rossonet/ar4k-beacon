@@ -97,6 +97,7 @@ public class TemplateProcessor extends AbstractProcessor {
 			final FlowFile flowFileFailed = session.putAllAttributes(session.create(), attributes);
 			session.transfer(flowFileFailed, FAILD);
 			session.commit();
+
 		}
 
 	}
