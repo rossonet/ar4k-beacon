@@ -26,51 +26,55 @@ import org.slf4j.LoggerFactory;
 
 public class ReadNodeExample implements ClientExample {
 
-    public static void main(String[] args) throws Exception {
-        ReadNodeExample example = new ReadNodeExample();
+	public static void main(String[] args) throws Exception {
+		final ReadNodeExample example = new ReadNodeExample();
 
-        new ClientExampleRunner(example).run();
-    }
+		new ClientExampleRunner(example).run();
+	}
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Override
-    public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
-        // synchronous connect
-        client.connect().get();
+	@Override
+	public boolean getTestResult() {
+		// TODO Auto-generated method stub
+		return true;
+	}
 
-        // Get a typed reference to the Server object: ServerNode
-        ServerTypeNode serverNode = (ServerTypeNode) client.getAddressSpace().getObjectNode(
-            Identifiers.Server,
-            Identifiers.ServerType
-        );
+	@Override
+	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+		// synchronous connect
+		client.connect().get();
 
-        // Read properties of the Server object...
-        String[] serverArray = serverNode.getServerArray();
-        String[] namespaceArray = serverNode.getNamespaceArray();
+		// Get a typed reference to the Server object: ServerNode
+		final ServerTypeNode serverNode = (ServerTypeNode) client.getAddressSpace().getObjectNode(Identifiers.Server,
+				Identifiers.ServerType);
 
-        logger.info("ServerArray={}", Arrays.toString(serverArray));
-        logger.info("NamespaceArray={}", Arrays.toString(namespaceArray));
+		// Read properties of the Server object...
+		final String[] serverArray = serverNode.getServerArray();
+		final String[] namespaceArray = serverNode.getNamespaceArray();
 
-        // Read the value of attribute the ServerStatus variable component
-        ServerStatusDataType serverStatus = serverNode.getServerStatus();
+		logger.info("ServerArray={}", Arrays.toString(serverArray));
+		logger.info("NamespaceArray={}", Arrays.toString(namespaceArray));
 
-        logger.info("ServerStatus={}", serverStatus);
+		// Read the value of attribute the ServerStatus variable component
+		final ServerStatusDataType serverStatus = serverNode.getServerStatus();
 
-        // Get a typed reference to the ServerStatus variable
-        // component and read value attributes individually
-        ServerStatusTypeNode serverStatusNode = serverNode.getServerStatusNode();
-        BuildInfo buildInfo = serverStatusNode.getBuildInfo();
-        DateTime startTime = serverStatusNode.getStartTime();
-        DateTime currentTime = serverStatusNode.getCurrentTime();
-        ServerState state = serverStatusNode.getState();
+		logger.info("ServerStatus={}", serverStatus);
 
-        logger.info("ServerStatus.BuildInfo={}", buildInfo);
-        logger.info("ServerStatus.StartTime={}", startTime);
-        logger.info("ServerStatus.CurrentTime={}", currentTime);
-        logger.info("ServerStatus.State={}", state);
+		// Get a typed reference to the ServerStatus variable
+		// component and read value attributes individually
+		final ServerStatusTypeNode serverStatusNode = serverNode.getServerStatusNode();
+		final BuildInfo buildInfo = serverStatusNode.getBuildInfo();
+		final DateTime startTime = serverStatusNode.getStartTime();
+		final DateTime currentTime = serverStatusNode.getCurrentTime();
+		final ServerState state = serverStatusNode.getState();
 
-        future.complete(client);
-    }
+		logger.info("ServerStatus.BuildInfo={}", buildInfo);
+		logger.info("ServerStatus.StartTime={}", startTime);
+		logger.info("ServerStatus.CurrentTime={}", currentTime);
+		logger.info("ServerStatus.State={}", state);
+
+		future.complete(client);
+	}
 
 }

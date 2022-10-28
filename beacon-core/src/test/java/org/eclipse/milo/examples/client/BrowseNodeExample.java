@@ -23,38 +23,44 @@ import org.slf4j.LoggerFactory;
 
 public class BrowseNodeExample implements ClientExample {
 
-    public static void main(String[] args) throws Exception {
-        BrowseNodeExample example = new BrowseNodeExample();
+	public static void main(String[] args) throws Exception {
+		final BrowseNodeExample example = new BrowseNodeExample();
 
-        new ClientExampleRunner(example).run();
-    }
+		new ClientExampleRunner(example).run();
+	}
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Override
-    public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
-        // synchronous connect
-        client.connect().get();
+	private void browseNode(String indent, OpcUaClient client, NodeId browseRoot) {
+		try {
+			final List<? extends UaNode> nodes = client.getAddressSpace().browseNodes(browseRoot);
 
-        // start browsing at root folder
-        browseNode("", client, Identifiers.RootFolder);
+			for (final UaNode node : nodes) {
+				logger.info("{} Node={}", indent, node.getBrowseName().getName());
 
-        future.complete(client);
-    }
+				// recursively browse to children
+				browseNode(indent + "  ", client, node.getNodeId());
+			}
+		} catch (final UaException e) {
+			logger.error("Browsing nodeId={} failed: {}", browseRoot, e.getMessage(), e);
+		}
+	}
 
-    private void browseNode(String indent, OpcUaClient client, NodeId browseRoot) {
-        try {
-            List<? extends UaNode> nodes = client.getAddressSpace().browseNodes(browseRoot);
+	@Override
+	public boolean getTestResult() {
+		// TODO Auto-generated method stub
+		return true;
+	}
 
-            for (UaNode node : nodes) {
-                logger.info("{} Node={}", indent, node.getBrowseName().getName());
+	@Override
+	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+		// synchronous connect
+		client.connect().get();
 
-                // recursively browse to children
-                browseNode(indent + "  ", client, node.getNodeId());
-            }
-        } catch (UaException e) {
-            logger.error("Browsing nodeId={} failed: {}", browseRoot, e.getMessage(), e);
-        }
-    }
+		// start browsing at root folder
+		browseNode("", client, Identifiers.RootFolder);
+
+		future.complete(client);
+	}
 
 }

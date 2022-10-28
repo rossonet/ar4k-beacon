@@ -10,6 +10,8 @@
 
 package org.eclipse.milo.examples.client;
 
+import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.milo.examples.server.types.CustomEnumType;
@@ -25,98 +27,83 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
-
 public class ReadWriteCustomDataTypeNodeExample implements ClientExample {
 
-    public static void main(String[] args) throws Exception {
-        ReadWriteCustomDataTypeNodeExample example = new ReadWriteCustomDataTypeNodeExample();
+	public static void main(String[] args) throws Exception {
+		final ReadWriteCustomDataTypeNodeExample example = new ReadWriteCustomDataTypeNodeExample();
 
-        new ClientExampleRunner(example).run();
-    }
+		new ClientExampleRunner(example).run();
+	}
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Override
-    public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
-        // synchronous connect
-        client.connect().get();
+	@Override
+	public boolean getTestResult() {
+		// TODO Auto-generated method stub
+		return true;
+	}
 
-        registerCustomCodec(client);
+	private void registerCustomCodec(OpcUaClient client) {
+		final NodeId dataTypeId = CustomStructType.TYPE_ID.toNodeId(client.getNamespaceTable())
+				.orElseThrow(() -> new IllegalStateException("namespace not found"));
 
-        // synchronous read request via VariableNode
-        UaVariableNode node = client.getAddressSpace().getVariableNode(
-            new NodeId(2, "HelloWorld/CustomStructTypeVariable")
-        );
+		final NodeId binaryEncodingId = CustomStructType.BINARY_ENCODING_ID.toNodeId(client.getNamespaceTable())
+				.orElseThrow(() -> new IllegalStateException("namespace not found"));
 
-        logger.info("DataType={}", node.getDataType());
+		// Register codec with the client's DataTypeManager instance.
+		// We need to register it by both its encodingId and its dataTypeId because it
+		// may be
+		// looked up by either depending on the context.
 
-        // Read the current value
-        DataValue value = node.readValue();
-        logger.info("Value={}", value);
+		client.getStaticDataTypeManager().registerCodec(binaryEncodingId, new CustomStructType.Codec().asBinaryCodec());
 
-        Variant variant = value.getValue();
-        ExtensionObject xo = (ExtensionObject) variant.getValue();
+		client.getStaticDataTypeManager().registerCodec(
+				new QualifiedName(dataTypeId.getNamespaceIndex(), "CustomStructType"), dataTypeId,
+				new CustomStructType.Codec().asBinaryCodec());
+	}
 
-        CustomStructType decoded = (CustomStructType) xo.decode(
-            client.getStaticSerializationContext()
-        );
-        logger.info("Decoded={}", decoded);
+	@Override
+	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+		// synchronous connect
+		client.connect().get();
 
-        // Write a modified value
-        CustomStructType modified = new CustomStructType(
-            decoded.getFoo() + "bar",
-            uint(decoded.getBar().intValue() + 1),
-            !decoded.isBaz(),
-            CustomEnumType.Field1
-        );
-        ExtensionObject modifiedXo = ExtensionObject.encode(
-            client.getStaticSerializationContext(),
-            modified,
-            xo.getEncodingId(),
-            OpcUaDefaultBinaryEncoding.getInstance()
-        );
+		registerCustomCodec(client);
 
-        node.writeValue(new DataValue(new Variant(modifiedXo)));
+		// synchronous read request via VariableNode
+		final UaVariableNode node = client.getAddressSpace()
+				.getVariableNode(new NodeId(2, "HelloWorld/CustomStructTypeVariable"));
 
-        // Read the modified value back
-        value = node.readValue();
-        logger.info("Value={}", value);
+		logger.info("DataType={}", node.getDataType());
 
-        variant = value.getValue();
-        xo = (ExtensionObject) variant.getValue();
+		// Read the current value
+		DataValue value = node.readValue();
+		logger.info("Value={}", value);
 
-        decoded = (CustomStructType) xo.decode(
-            client.getStaticSerializationContext()
-        );
-        logger.info("Decoded={}", decoded);
+		Variant variant = value.getValue();
+		ExtensionObject xo = (ExtensionObject) variant.getValue();
 
-        future.complete(client);
-    }
+		CustomStructType decoded = (CustomStructType) xo.decode(client.getStaticSerializationContext());
+		logger.info("Decoded={}", decoded);
 
-    private void registerCustomCodec(OpcUaClient client) {
-        NodeId dataTypeId = CustomStructType.TYPE_ID
-            .toNodeId(client.getNamespaceTable())
-            .orElseThrow(() -> new IllegalStateException("namespace not found"));
+		// Write a modified value
+		final CustomStructType modified = new CustomStructType(decoded.getFoo() + "bar",
+				uint(decoded.getBar().intValue() + 1), !decoded.isBaz(), CustomEnumType.Field1);
+		final ExtensionObject modifiedXo = ExtensionObject.encode(client.getStaticSerializationContext(), modified,
+				xo.getEncodingId(), OpcUaDefaultBinaryEncoding.getInstance());
 
-        NodeId binaryEncodingId = CustomStructType.BINARY_ENCODING_ID
-            .toNodeId(client.getNamespaceTable())
-            .orElseThrow(() -> new IllegalStateException("namespace not found"));
+		node.writeValue(new DataValue(new Variant(modifiedXo)));
 
-        // Register codec with the client's DataTypeManager instance.
-        // We need to register it by both its encodingId and its dataTypeId because it may be
-        // looked up by either depending on the context.
+		// Read the modified value back
+		value = node.readValue();
+		logger.info("Value={}", value);
 
-        client.getStaticDataTypeManager().registerCodec(
-            binaryEncodingId,
-            new CustomStructType.Codec().asBinaryCodec()
-        );
+		variant = value.getValue();
+		xo = (ExtensionObject) variant.getValue();
 
-        client.getStaticDataTypeManager().registerCodec(
-            new QualifiedName(dataTypeId.getNamespaceIndex(), "CustomStructType"),
-            dataTypeId,
-            new CustomStructType.Codec().asBinaryCodec()
-        );
-    }
+		decoded = (CustomStructType) xo.decode(client.getStaticSerializationContext());
+		logger.info("Decoded={}", decoded);
+
+		future.complete(client);
+	}
 
 }

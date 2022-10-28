@@ -4,10 +4,11 @@ import org.apache.flink.streaming.examples.join.WindowJoin;
 
 public class RunnerFlinkTests {
 
-	// verificare durata test
+	// TODO completare test Flink
 	// @Test
 	public void runWindowJoinExample() throws Exception {
 		WindowJoin.main(new String[0]);
+
 	}
 
 }

@@ -10,6 +10,9 @@
 
 package org.eclipse.milo.examples.client;
 
+import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+import static org.eclipse.milo.opcua.stack.core.util.ConversionUtil.toList;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -26,56 +29,53 @@ import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
-import static org.eclipse.milo.opcua.stack.core.util.ConversionUtil.toList;
-
 public class BrowseExample implements ClientExample {
 
-    public static void main(String[] args) throws Exception {
-        BrowseExample example = new BrowseExample();
+	public static void main(String[] args) throws Exception {
+		final BrowseExample example = new BrowseExample();
 
-        new ClientExampleRunner(example).run();
-    }
+		new ClientExampleRunner(example).run();
+	}
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Override
-    public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
-        // synchronous connect
-        client.connect().get();
+	private void browseNode(String indent, OpcUaClient client, NodeId browseRoot) {
+		final BrowseDescription browse = new BrowseDescription(browseRoot, BrowseDirection.Forward,
+				Identifiers.References, true, uint(NodeClass.Object.getValue() | NodeClass.Variable.getValue()),
+				uint(BrowseResultMask.All.getValue()));
 
-        // start browsing at root folder
-        browseNode("", client, Identifiers.RootFolder);
+		try {
+			final BrowseResult browseResult = client.browse(browse).get();
 
-        future.complete(client);
-    }
+			final List<ReferenceDescription> references = toList(browseResult.getReferences());
 
-    private void browseNode(String indent, OpcUaClient client, NodeId browseRoot) {
-        BrowseDescription browse = new BrowseDescription(
-            browseRoot,
-            BrowseDirection.Forward,
-            Identifiers.References,
-            true,
-            uint(NodeClass.Object.getValue() | NodeClass.Variable.getValue()),
-            uint(BrowseResultMask.All.getValue())
-        );
+			for (final ReferenceDescription rd : references) {
+				logger.info("{} Node={}", indent, rd.getBrowseName().getName());
 
-        try {
-            BrowseResult browseResult = client.browse(browse).get();
+				// recursively browse to children
+				rd.getNodeId().toNodeId(client.getNamespaceTable())
+						.ifPresent(nodeId -> browseNode(indent + "  ", client, nodeId));
+			}
+		} catch (InterruptedException | ExecutionException e) {
+			logger.error("Browsing nodeId={} failed: {}", browseRoot, e.getMessage(), e);
+		}
+	}
 
-            List<ReferenceDescription> references = toList(browseResult.getReferences());
+	@Override
+	public boolean getTestResult() {
+		// TODO Auto-generated method stub
+		return true;
+	}
 
-            for (ReferenceDescription rd : references) {
-                logger.info("{} Node={}", indent, rd.getBrowseName().getName());
+	@Override
+	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+		// synchronous connect
+		client.connect().get();
 
-                // recursively browse to children
-                rd.getNodeId().toNodeId(client.getNamespaceTable())
-                    .ifPresent(nodeId -> browseNode(indent + "  ", client, nodeId));
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            logger.error("Browsing nodeId={} failed: {}", browseRoot, e.getMessage(), e);
-        }
-    }
+		// start browsing at root folder
+		browseNode("", client, Identifiers.RootFolder);
+
+		future.complete(client);
+	}
 
 }
-

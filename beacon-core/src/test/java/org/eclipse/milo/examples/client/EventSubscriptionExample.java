@@ -10,6 +10,9 @@
 
 package org.eclipse.milo.examples.client;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,106 +37,76 @@ import org.eclipse.milo.opcua.stack.core.types.structured.SimpleAttributeOperand
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
-
 public class EventSubscriptionExample implements ClientExample {
 
-    public static void main(String[] args) throws Exception {
-        EventSubscriptionExample example = new EventSubscriptionExample();
+	public static void main(String[] args) throws Exception {
+		final EventSubscriptionExample example = new EventSubscriptionExample();
 
-        new ClientExampleRunner(example, true).run();
-    }
+		new ClientExampleRunner(example, true).run();
+	}
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final AtomicLong clientHandles = new AtomicLong(1L);
+	private final AtomicLong clientHandles = new AtomicLong(1L);
 
-    @Override
-    public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
-        // synchronous connect
-        client.connect().get();
+	@Override
+	public boolean getTestResult() {
+		// TODO Auto-generated method stub
+		return true;
+	}
 
-        // create a subscription and a monitored item
-        UaSubscription subscription = client.getSubscriptionManager()
-            .createSubscription(1000.0).get();
+	@Override
+	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+		// synchronous connect
+		client.connect().get();
 
-        ReadValueId readValueId = new ReadValueId(
-            Identifiers.Server,
-            AttributeId.EventNotifier.uid(),
-            null,
-            QualifiedName.NULL_VALUE
-        );
+		// create a subscription and a monitored item
+		final UaSubscription subscription = client.getSubscriptionManager().createSubscription(1000.0).get();
 
-        // client handle must be unique per item
-        UInteger clientHandle = uint(clientHandles.getAndIncrement());
+		final ReadValueId readValueId = new ReadValueId(Identifiers.Server, AttributeId.EventNotifier.uid(), null,
+				QualifiedName.NULL_VALUE);
 
-        EventFilter eventFilter = new EventFilter(
-            new SimpleAttributeOperand[]{
-                new SimpleAttributeOperand(
-                    Identifiers.BaseEventType,
-                    new QualifiedName[]{new QualifiedName(0, "EventId")},
-                    AttributeId.Value.uid(),
-                    null),
-                new SimpleAttributeOperand(
-                    Identifiers.BaseEventType,
-                    new QualifiedName[]{new QualifiedName(0, "EventType")},
-                    AttributeId.Value.uid(),
-                    null),
-                new SimpleAttributeOperand(
-                    Identifiers.BaseEventType,
-                    new QualifiedName[]{new QualifiedName(0, "Severity")},
-                    AttributeId.Value.uid(),
-                    null),
-                new SimpleAttributeOperand(
-                    Identifiers.BaseEventType,
-                    new QualifiedName[]{new QualifiedName(0, "Time")},
-                    AttributeId.Value.uid(),
-                    null),
-                new SimpleAttributeOperand(
-                    Identifiers.BaseEventType,
-                    new QualifiedName[]{new QualifiedName(0, "Message")},
-                    AttributeId.Value.uid(),
-                    null)
-            },
-            new ContentFilter(null)
-        );
+		// client handle must be unique per item
+		final UInteger clientHandle = uint(clientHandles.getAndIncrement());
 
-        MonitoringParameters parameters = new MonitoringParameters(
-            clientHandle,
-            0.0,
-            ExtensionObject.encode(client.getStaticSerializationContext(), eventFilter),
-            uint(10),
-            true
-        );
+		final EventFilter eventFilter = new EventFilter(new SimpleAttributeOperand[] {
+				new SimpleAttributeOperand(Identifiers.BaseEventType,
+						new QualifiedName[] { new QualifiedName(0, "EventId") }, AttributeId.Value.uid(), null),
+				new SimpleAttributeOperand(Identifiers.BaseEventType,
+						new QualifiedName[] { new QualifiedName(0, "EventType") }, AttributeId.Value.uid(), null),
+				new SimpleAttributeOperand(Identifiers.BaseEventType,
+						new QualifiedName[] { new QualifiedName(0, "Severity") }, AttributeId.Value.uid(), null),
+				new SimpleAttributeOperand(Identifiers.BaseEventType,
+						new QualifiedName[] { new QualifiedName(0, "Time") }, AttributeId.Value.uid(), null),
+				new SimpleAttributeOperand(Identifiers.BaseEventType,
+						new QualifiedName[] { new QualifiedName(0, "Message") }, AttributeId.Value.uid(), null) },
+				new ContentFilter(null));
 
-        MonitoredItemCreateRequest request = new MonitoredItemCreateRequest(
-            readValueId,
-            MonitoringMode.Reporting,
-            parameters
-        );
+		final MonitoringParameters parameters = new MonitoringParameters(clientHandle, 0.0,
+				ExtensionObject.encode(client.getStaticSerializationContext(), eventFilter), uint(10), true);
 
-        List<UaMonitoredItem> items = subscription
-            .createMonitoredItems(TimestampsToReturn.Both, newArrayList(request)).get();
+		final MonitoredItemCreateRequest request = new MonitoredItemCreateRequest(readValueId, MonitoringMode.Reporting,
+				parameters);
 
-        // do something with the value updates
-        UaMonitoredItem monitoredItem = items.get(0);
+		final List<UaMonitoredItem> items = subscription
+				.createMonitoredItems(TimestampsToReturn.Both, newArrayList(request)).get();
 
-        final AtomicInteger eventCount = new AtomicInteger(0);
+		// do something with the value updates
+		final UaMonitoredItem monitoredItem = items.get(0);
 
-        monitoredItem.setEventConsumer((item, vs) -> {
-            logger.info(
-                "Event Received from {}",
-                item.getReadValueId().getNodeId());
+		final AtomicInteger eventCount = new AtomicInteger(0);
 
-            for (int i = 0; i < vs.length; i++) {
-                logger.info("\tvariant[{}]: {}", i, vs[i].getValue());
-            }
+		monitoredItem.setEventConsumer((item, vs) -> {
+			logger.info("Event Received from {}", item.getReadValueId().getNodeId());
 
-            if (eventCount.incrementAndGet() == 3) {
-                future.complete(client);
-            }
-        });
-    }
+			for (int i = 0; i < vs.length; i++) {
+				logger.info("\tvariant[{}]: {}", i, vs[i].getValue());
+			}
+
+			if (eventCount.incrementAndGet() == 3) {
+				future.complete(client);
+			}
+		});
+	}
 
 }

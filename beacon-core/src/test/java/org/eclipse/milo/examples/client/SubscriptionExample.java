@@ -10,6 +10,9 @@
 
 package org.eclipse.milo.examples.client;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,83 +32,80 @@ import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
-
 public class SubscriptionExample implements ClientExample {
 
-    public static void main(String[] args) throws Exception {
-        SubscriptionExample example = new SubscriptionExample();
+	public static void main(String[] args) throws Exception {
+		final SubscriptionExample example = new SubscriptionExample();
 
-        new ClientExampleRunner(example).run();
-    }
+		new ClientExampleRunner(example).run();
+	}
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Override
-    public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
-        // synchronous connect
-        client.connect().get();
+	@Override
+	public boolean getTestResult() {
+		// TODO Auto-generated method stub
+		return true;
+	}
 
-        // create a subscription @ 1000ms
-        UaSubscription subscription = client.getSubscriptionManager().createSubscription(1000.0).get();
+	private void onSubscriptionValue(UaMonitoredItem item, DataValue value) {
+		logger.info("subscription value received: item={}, value={}", item.getReadValueId().getNodeId(),
+				value.getValue());
+	}
 
-        // subscribe to the Value attribute of the server's CurrentTime node
-        ReadValueId readValueId = new ReadValueId(
-            Identifiers.Server_ServerStatus_CurrentTime,
-            AttributeId.Value.uid(), null, QualifiedName.NULL_VALUE
-        );
+	@Override
+	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+		// synchronous connect
+		client.connect().get();
 
-        // IMPORTANT: client handle must be unique per item within the context of a subscription.
-        // You are not required to use the UaSubscription's client handle sequence; it is provided as a convenience.
-        // Your application is free to assign client handles by whatever means necessary.
-        UInteger clientHandle = subscription.nextClientHandle();
+		// create a subscription @ 1000ms
+		final UaSubscription subscription = client.getSubscriptionManager().createSubscription(1000.0).get();
 
-        MonitoringParameters parameters = new MonitoringParameters(
-            clientHandle,
-            1000.0,     // sampling interval
-            null,       // filter, null means use default
-            uint(10),   // queue size
-            true        // discard oldest
-        );
+		// subscribe to the Value attribute of the server's CurrentTime node
+		final ReadValueId readValueId = new ReadValueId(Identifiers.Server_ServerStatus_CurrentTime,
+				AttributeId.Value.uid(), null, QualifiedName.NULL_VALUE);
 
-        MonitoredItemCreateRequest request = new MonitoredItemCreateRequest(
-            readValueId,
-            MonitoringMode.Reporting,
-            parameters
-        );
+		// IMPORTANT: client handle must be unique per item within the context of a
+		// subscription.
+		// You are not required to use the UaSubscription's client handle sequence; it
+		// is provided as a convenience.
+		// Your application is free to assign client handles by whatever means
+		// necessary.
+		final UInteger clientHandle = subscription.nextClientHandle();
 
-        // when creating items in MonitoringMode.Reporting this callback is where each item needs to have its
-        // value/event consumer hooked up. The alternative is to create the item in sampling mode, hook up the
-        // consumer after the creation call completes, and then change the mode for all items to reporting.
-        UaSubscription.ItemCreationCallback onItemCreated =
-            (item, id) -> item.setValueConsumer(this::onSubscriptionValue);
+		final MonitoringParameters parameters = new MonitoringParameters(clientHandle, 1000.0, // sampling interval
+				null, // filter, null means use default
+				uint(10), // queue size
+				true // discard oldest
+		);
 
-        List<UaMonitoredItem> items = subscription.createMonitoredItems(
-            TimestampsToReturn.Both,
-            newArrayList(request),
-            onItemCreated
-        ).get();
+		final MonitoredItemCreateRequest request = new MonitoredItemCreateRequest(readValueId, MonitoringMode.Reporting,
+				parameters);
 
-        for (UaMonitoredItem item : items) {
-            if (item.getStatusCode().isGood()) {
-                logger.info("item created for nodeId={}", item.getReadValueId().getNodeId());
-            } else {
-                logger.warn(
-                    "failed to create item for nodeId={} (status={})",
-                    item.getReadValueId().getNodeId(), item.getStatusCode());
-            }
-        }
+		// when creating items in MonitoringMode.Reporting this callback is where each
+		// item needs to have its
+		// value/event consumer hooked up. The alternative is to create the item in
+		// sampling mode, hook up the
+		// consumer after the creation call completes, and then change the mode for all
+		// items to reporting.
+		final UaSubscription.ItemCreationCallback onItemCreated = (item, id) -> item
+				.setValueConsumer(this::onSubscriptionValue);
 
-        // let the example run for 5 seconds then terminate
-        Thread.sleep(5000);
-        future.complete(client);
-    }
+		final List<UaMonitoredItem> items = subscription
+				.createMonitoredItems(TimestampsToReturn.Both, newArrayList(request), onItemCreated).get();
 
-    private void onSubscriptionValue(UaMonitoredItem item, DataValue value) {
-        logger.info(
-            "subscription value received: item={}, value={}",
-            item.getReadValueId().getNodeId(), value.getValue());
-    }
+		for (final UaMonitoredItem item : items) {
+			if (item.getStatusCode().isGood()) {
+				logger.info("item created for nodeId={}", item.getReadValueId().getNodeId());
+			} else {
+				logger.warn("failed to create item for nodeId={} (status={})", item.getReadValueId().getNodeId(),
+						item.getStatusCode());
+			}
+		}
+
+		// let the example run for 5 seconds then terminate
+		Thread.sleep(5000);
+		future.complete(client);
+	}
 
 }
