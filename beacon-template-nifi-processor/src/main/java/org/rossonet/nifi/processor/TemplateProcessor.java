@@ -85,9 +85,6 @@ public class TemplateProcessor extends AbstractProcessor {
 			attributes.put("welcome", "message");
 			final FlowFile flowFileTest = session.putAllAttributes(originalFlowFile, attributes);
 			session.transfer(flowFileTest, TEST1);
-			attributes.put("good", "status");
-			final FlowFile flowFileTestGood = session.putAllAttributes(originalFlowFile, attributes);
-			session.transfer(flowFileTestGood, SUCCESS);
 			session.commit();
 		} catch (final Exception e) {
 			final Map<String, String> attributes = new HashMap<String, String>();
