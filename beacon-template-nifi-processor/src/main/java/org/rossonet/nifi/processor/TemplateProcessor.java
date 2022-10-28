@@ -25,6 +25,7 @@ import org.apache.nifi.processor.ProcessorInitializationContext;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.processor.util.StandardValidators;
+import org.rossonet.utils.LogHelper;
 
 @EventDriven
 @SupportsBatching
@@ -90,12 +91,12 @@ public class TemplateProcessor extends AbstractProcessor {
 			session.commit();
 		} catch (final Exception e) {
 			final Map<String, String> attributes = new HashMap<String, String>();
-			attributes.put("failed", "label");
-			attributes.put("exception", e.getMessage());
-			final FlowFile flowFileFailed = session.putAllAttributes(originalFlowFile, attributes);
+			attributes.put("failed", "true");
+			attributes.put("message", e.getMessage());
+			attributes.put("exception", LogHelper.stackTraceToString(e));
+			final FlowFile flowFileFailed = session.putAllAttributes(session.create(), attributes);
 			session.transfer(flowFileFailed, FAILD);
 			session.commit();
-			// throw new ProcessException(e);
 		}
 
 	}
