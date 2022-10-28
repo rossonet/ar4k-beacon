@@ -78,6 +78,7 @@ task generateBeaconctlShadowJar {
 
 task generateTemplateNifiPlugin {
   group "build NiFi"
-  description 'Build Template plugin, beacon-template-nifi-processor, in nar format'
+  description 'Build Template plugin, beacon-template-nifi-processor and beacon-template-nifi-service, in nar format'
   dependsOn(":beacon-template-nifi-processor:nar")
+  dependsOn(":beacon-template-nifi-service:nar")
 }
