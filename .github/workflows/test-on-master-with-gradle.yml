@@ -9,6 +9,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
     - name: Checkout
@@ -27,4 +28,4 @@ jobs:
     - name: Print env
       run: echo $GITHUB_ACTOR
     - name: Build and test with Gradle
-      run: ./gradlew test -Dorg.gradle.daemon=false
+      run: ./gradlew test -Dorg.gradle.daemon=false --info
