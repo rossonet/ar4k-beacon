@@ -35,6 +35,12 @@ public class ReadExample implements ClientExample {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
+	@Override
+	public boolean getTestResult() {
+		// TODO Auto-generated method stub
+		return true;
+	}
+
 	private CompletableFuture<List<DataValue>> readServerStateAndTime(final OpcUaClient client) {
 		final List<NodeId> nodeIds = ImmutableList.of(Identifiers.Server_ServerStatus_State,
 				Identifiers.Server_ServerStatus_CurrentTime);

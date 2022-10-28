@@ -13,6 +13,7 @@ package org.eclipse.milo.examples.client;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
+import org.eclipse.milo.examples.server.ExampleServer;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.identity.AnonymousProvider;
 import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
@@ -26,7 +27,7 @@ public interface ClientExample {
 	}
 
 	default String getEndpointUrl() {
-		return "opc.tcp://192.168.1.164:53530/OPCUA/SimulationServer";
+		return "opc.tcp://127.0.0.1:" + ExampleServer.TCP_BIND_PORT + ExampleServer.MILO_DISCOVERY_PATH;
 	}
 
 	default IdentityProvider getIdentityProvider() {
@@ -34,8 +35,10 @@ public interface ClientExample {
 	}
 
 	default SecurityPolicy getSecurityPolicy() {
-		return SecurityPolicy.Basic256Sha256;
+		return SecurityPolicy.None;
 	}
+
+	boolean getTestResult();
 
 	void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception;
 

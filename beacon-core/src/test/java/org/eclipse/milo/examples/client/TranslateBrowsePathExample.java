@@ -10,6 +10,9 @@
 
 package org.eclipse.milo.examples.client;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.eclipse.milo.opcua.stack.core.util.ConversionUtil.l;
+
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
@@ -24,55 +27,45 @@ import org.eclipse.milo.opcua.stack.core.types.structured.TranslateBrowsePathsTo
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.eclipse.milo.opcua.stack.core.util.ConversionUtil.l;
-
 public class TranslateBrowsePathExample implements ClientExample {
 
-    public static void main(String[] args) throws Exception {
-        TranslateBrowsePathExample example = new TranslateBrowsePathExample();
+	public static void main(String[] args) throws Exception {
+		final TranslateBrowsePathExample example = new TranslateBrowsePathExample();
 
-        new ClientExampleRunner(example).run();
-    }
+		new ClientExampleRunner(example).run();
+	}
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Override
-    public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
-        // synchronous connect
-        client.connect().get();
+	@Override
+	public boolean getTestResult() {
+		// TODO Auto-generated method stub
+		return true;
+	}
 
-        TranslateBrowsePathsToNodeIdsResponse response = client.translateBrowsePaths(newArrayList(new BrowsePath(
-            Identifiers.ObjectsFolder,
-            new RelativePath(new RelativePathElement[]{
-                new RelativePathElement(
-                    Identifiers.HierarchicalReferences,
-                    false,
-                    true,
-                    new QualifiedName(2, "HelloWorld")
-                ),
-                new RelativePathElement(
-                    Identifiers.HierarchicalReferences,
-                    false,
-                    true,
-                    new QualifiedName(2, "ScalarTypes")
-                ),
-                new RelativePathElement(
-                    Identifiers.HierarchicalReferences,
-                    false,
-                    true,
-                    new QualifiedName(2, "UInt64")
-                )
-            })
-        ))).get();
+	@Override
+	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+		// synchronous connect
+		client.connect().get();
 
-        BrowsePathResult result = l(response.getResults()).get(0);
-        StatusCode statusCode = result.getStatusCode();
-        logger.info("Status={}", statusCode);
+		final TranslateBrowsePathsToNodeIdsResponse response = client
+				.translateBrowsePaths(newArrayList(new BrowsePath(Identifiers.ObjectsFolder,
+						new RelativePath(new RelativePathElement[] {
+								new RelativePathElement(Identifiers.HierarchicalReferences, false, true,
+										new QualifiedName(2, "HelloWorld")),
+								new RelativePathElement(Identifiers.HierarchicalReferences, false, true,
+										new QualifiedName(2, "ScalarTypes")),
+								new RelativePathElement(Identifiers.HierarchicalReferences, false, true,
+										new QualifiedName(2, "UInt64")) }))))
+				.get();
 
-        l(result.getTargets()).forEach(target -> logger.info("TargetId={}", target.getTargetId()));
+		final BrowsePathResult result = l(response.getResults()).get(0);
+		final StatusCode statusCode = result.getStatusCode();
+		logger.info("Status={}", statusCode);
 
-        future.complete(client);
-    }
+		l(result.getTargets()).forEach(target -> logger.info("TargetId={}", target.getTargetId()));
+
+		future.complete(client);
+	}
 
 }

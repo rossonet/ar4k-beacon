@@ -20,6 +20,7 @@ import java.security.Security;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.milo.examples.server.ExampleServer;
@@ -32,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ClientExampleRunner {
-
 	static {
 		// Required for SecurityPolicy.Aes256_Sha256_RsaPss
 		Security.addProvider(new BouncyCastleProvider());
@@ -58,6 +58,7 @@ public class ClientExampleRunner {
 		this.serverRequired = serverRequired;
 
 		if (serverRequired) {
+			logger.info("starting server");
 			exampleServer = new ExampleServer();
 			exampleServer.startup().get();
 		}
@@ -93,6 +94,10 @@ public class ClientExampleRunner {
 						.build());
 	}
 
+	public boolean getTestResult() {
+		return clientExample.getTestResult();
+	}
+
 	public void run() {
 		try {
 			final OpcUaClient client = createClient();
@@ -124,16 +129,16 @@ public class ClientExampleRunner {
 				try {
 					client.disconnect().get();
 					if (serverRequired && exampleServer != null) {
-						exampleServer.shutdown().get();
+						exampleServer.shutdown().get(30, TimeUnit.SECONDS);
 					}
 					Stack.releaseSharedResources();
-				} catch (InterruptedException | ExecutionException e) {
+				} catch (InterruptedException | ExecutionException | TimeoutException e) {
 					logger.error("Error disconnecting: {}", e.getMessage(), e);
 				}
 
 				try {
 					Thread.sleep(1000);
-					System.exit(0);
+					// System.exit(0);
 				} catch (final InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -153,15 +158,20 @@ public class ClientExampleRunner {
 
 			try {
 				Thread.sleep(1000);
-				System.exit(0);
+				// System.exit(0);
 			} catch (final InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
-
+		logger.info("** before sleep...");
 		try {
-			Thread.sleep(999_999_999);
-		} catch (final InterruptedException e) {
+			if (serverRequired && exampleServer != null) {
+				exampleServer.shutdown();
+				Thread.sleep(6000);
+				exampleServer = null;
+			}
+			logger.info("** after sleep, client shutdown completed");
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}

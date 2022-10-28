@@ -24,53 +24,57 @@ import org.eclipse.milo.opcua.stack.core.types.structured.EventFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class ManagedSubscriptionEventExample implements ClientExample {
 
-    public static void main(String[] args) throws Exception {
-        ManagedSubscriptionEventExample example = new ManagedSubscriptionEventExample();
+	public static void main(String[] args) throws Exception {
+		final ManagedSubscriptionEventExample example = new ManagedSubscriptionEventExample();
 
-        new ClientExampleRunner(example).run();
-    }
+		new ClientExampleRunner(example).run();
+	}
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Override
-    public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
-        client.connect().get();
+	@Override
+	public boolean getTestResult() {
+		// TODO Auto-generated method stub
+		return true;
+	}
 
-        final CountDownLatch eventLatch = new CountDownLatch(3);
+	@Override
+	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+		client.connect().get();
 
-        ManagedSubscription subscription = ManagedSubscription.create(client);
+		final CountDownLatch eventLatch = new CountDownLatch(3);
 
-        subscription.addEventChangeListener((eventItems, variants) -> {
-            for (int i = 0; i < eventItems.size(); i++) {
-                ManagedEventItem eventItem = eventItems.get(i);
-                Variant[] eventFieldValues = variants.get(i);
+		final ManagedSubscription subscription = ManagedSubscription.create(client);
 
-                logger.info("Event Received from {}", eventItem.getNodeId());
-                for (int j = 0; j < eventFieldValues.length; j++) {
-                    logger.info("\tvariant[{}]: {}", j, eventFieldValues[j].getValue());
-                }
-            }
+		subscription.addEventChangeListener((eventItems, variants) -> {
+			for (int i = 0; i < eventItems.size(); i++) {
+				final ManagedEventItem eventItem = eventItems.get(i);
+				final Variant[] eventFieldValues = variants.get(i);
 
-            eventLatch.countDown();
-        });
+				logger.info("Event Received from {}", eventItem.getNodeId());
+				for (int j = 0; j < eventFieldValues.length; j++) {
+					logger.info("\tvariant[{}]: {}", j, eventFieldValues[j].getValue());
+				}
+			}
 
-        EventFilter eventFilter = new EventFilterBuilder()
-            .select(Identifiers.BaseEventType, new QualifiedName(0, "EventId"))
-            .select(Identifiers.BaseEventType, new QualifiedName(0, "EventType"))
-            .select(Identifiers.BaseEventType, new QualifiedName(0, "Severity"))
-            .select(Identifiers.BaseEventType, new QualifiedName(0, "Time"))
-            .select(Identifiers.BaseEventType, new QualifiedName(0, "Message"))
-            .build();
+			eventLatch.countDown();
+		});
 
-        ManagedEventItem eventItem = subscription.createEventItem(Identifiers.Server, eventFilter);
+		final EventFilter eventFilter = new EventFilterBuilder()
+				.select(Identifiers.BaseEventType, new QualifiedName(0, "EventId"))
+				.select(Identifiers.BaseEventType, new QualifiedName(0, "EventType"))
+				.select(Identifiers.BaseEventType, new QualifiedName(0, "Severity"))
+				.select(Identifiers.BaseEventType, new QualifiedName(0, "Time"))
+				.select(Identifiers.BaseEventType, new QualifiedName(0, "Message")).build();
 
-        // wait for some events to arrive before completing
-        eventLatch.await();
-        eventItem.delete();
-        future.complete(client);
-    }
+		final ManagedEventItem eventItem = subscription.createEventItem(Identifiers.Server, eventFilter);
+
+		// wait for some events to arrive before completing
+		eventLatch.await();
+		eventItem.delete();
+		future.complete(client);
+	}
 
 }

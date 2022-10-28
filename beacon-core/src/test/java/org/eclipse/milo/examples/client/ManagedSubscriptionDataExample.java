@@ -19,51 +19,50 @@ import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class ManagedSubscriptionDataExample implements ClientExample {
 
-    public static void main(String[] args) throws Exception {
-        ManagedSubscriptionDataExample example = new ManagedSubscriptionDataExample();
+	public static void main(String[] args) throws Exception {
+		final ManagedSubscriptionDataExample example = new ManagedSubscriptionDataExample();
 
-        new ClientExampleRunner(example).run();
-    }
+		new ClientExampleRunner(example).run();
+	}
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Override
-    public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
-        client.connect().get();
+	@Override
+	public boolean getTestResult() {
+		// TODO Auto-generated method stub
+		return true;
+	}
 
-        ManagedSubscription subscription = ManagedSubscription.create(client);
+	@Override
+	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+		client.connect().get();
 
-        subscription.addDataChangeListener((items, values) -> {
-            for (int i = 0; i < items.size(); i++) {
-                logger.info(
-                    "subscription value received: item={}, value={}",
-                    items.get(i).getNodeId(), values.get(i).getValue()
-                );
-            }
-        });
+		final ManagedSubscription subscription = ManagedSubscription.create(client);
 
-        ManagedDataItem dataItem = subscription.createDataItem(
-            Identifiers.Server_ServerStatus_CurrentTime
-        );
+		subscription.addDataChangeListener((items, values) -> {
+			for (int i = 0; i < items.size(); i++) {
+				logger.info("subscription value received: item={}, value={}", items.get(i).getNodeId(),
+						values.get(i).getValue());
+			}
+		});
 
-        if (dataItem.getStatusCode().isGood()) {
-            logger.info("item created for nodeId={}", dataItem.getNodeId());
+		final ManagedDataItem dataItem = subscription.createDataItem(Identifiers.Server_ServerStatus_CurrentTime);
 
-            // let the example run for 5 seconds before completing
-            Thread.sleep(5000);
+		if (dataItem.getStatusCode().isGood()) {
+			logger.info("item created for nodeId={}", dataItem.getNodeId());
 
-            dataItem.delete();
-        } else {
-            logger.warn(
-                "failed to create item for nodeId={} (status={})",
-                dataItem.getNodeId(), dataItem.getStatusCode()
-            );
-        }
+			// let the example run for 5 seconds before completing
+			Thread.sleep(5000);
 
-        future.complete(client);
-    }
+			dataItem.delete();
+		} else {
+			logger.warn("failed to create item for nodeId={} (status={})", dataItem.getNodeId(),
+					dataItem.getStatusCode());
+		}
+
+		future.complete(client);
+	}
 
 }
