@@ -70,3 +70,14 @@ task theiaIdeLocalBrowser(type: Exec) {
         commandLine 'xdg-open', 'http://localhost:3000'
 }
 
+task generateBeaconctlShadowJar {
+  group "build NiFi"
+  description 'Build beaconctl as shadow jar -fat jar-'
+  dependsOn(":beacon-beaconctl:shadowJar")
+}
+
+task generateTemplateNifiPlugin {
+  group "build NiFi"
+  description 'Build Template plugin, beacon-template-nifi-processor, in nar format'
+  dependsOn(":beacon-template-nifi-processor:nar")
+}

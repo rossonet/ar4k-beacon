@@ -14,3 +14,4 @@ pluginManagement {
 rootProject.name = 'Beacon'
 include 'beacon-core'
 include 'beacon-beaconctl'
+include 'beacon-template-nifi-processor'
