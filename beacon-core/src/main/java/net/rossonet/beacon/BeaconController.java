@@ -172,6 +172,7 @@ public class BeaconController implements AutoCloseable {
 	}
 
 	private void fireNifiError(final Exception e) {
+		// TODO verificare come comportarsi in casi di mancata risposta di NiFi
 		logger.severe("exception trying NiFi API client\n" + LogHelper.stackTraceToString(e, 15));
 
 	}

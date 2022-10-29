@@ -3,6 +3,8 @@ package net.rossonet.beacon.nifi;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -62,9 +64,21 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 	private static final Logger logger = Logger.getLogger(NiFiLocalWrapper.class.getName());
 	private static final String NIFI_WEB_HTTP_PORT_PARAMETER = "NIFI_WEB_HTTP_PORT";
 
+	private static String getHostName() {
+		String hostName = "127.0.0.1";
+		try {
+			final InetAddress inetAddress = InetAddress.getLocalHost();
+			hostName = inetAddress.getHostName();
+		} catch (final UnknownHostException e) {
+			logger.severe(LogHelper.stackTraceToString(e));
+		}
+		return hostName;
+	}
+
 	private BeaconController beaconController;
 	private Process nifiProcess;
 	private final String pathNifiStartingScript;
+
 	private AccessApi webClientService;
 
 	private final File workingDirectory;
@@ -151,8 +165,8 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 	private void createApiClient() {
 		webClientService = new AccessApi();
 		final ApiClient defaultApiClient = Configuration.getDefaultApiClient();
-		webClientService
-				.setApiClient(defaultApiClient.setBasePath("http://localhost:" + DEFAULT_NIFI_PORT + "/nifi-api"));
+		webClientService.setApiClient(
+				defaultApiClient.setBasePath("http://" + getHostName() + ":" + DEFAULT_NIFI_PORT + "/nifi-api"));
 	}
 
 }
