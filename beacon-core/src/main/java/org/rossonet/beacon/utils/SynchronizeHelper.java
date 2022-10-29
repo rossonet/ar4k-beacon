@@ -11,6 +11,11 @@ import java.util.stream.Collectors;
 
 public final class SynchronizeHelper {
 
+	public static String copyLastFileToXmlFile(final Path sourcePath, final Path targetFile) {
+		// TODO get last file and save it
+		return null;
+	}
+
 	public static long filesCompareByByte(final Path path1, final Path path2) throws IOException {
 		try (BufferedInputStream fis1 = new BufferedInputStream(new FileInputStream(path1.toFile()));
 				BufferedInputStream fis2 = new BufferedInputStream(new FileInputStream(path2.toFile()))) {
