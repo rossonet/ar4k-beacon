@@ -9,11 +9,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 public final class SynchronizeHelper {
 
 	private static final DateTimeFormatter FORMAT_DATE_TIME = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
+	private static final long PRESERVE_ARCHIVE_MS = 0;
 
 	public static String copyLastFileToXmlFile(final Path sourcePath, final Path targetPath) throws IOException {
 		final StringBuilder report = new StringBuilder();
@@ -33,6 +35,22 @@ public final class SynchronizeHelper {
 			}
 		} else {
 			report.append(sourcePath.toString() + " NOT EXISTS\n");
+		}
+		return report.toString();
+	}
+
+	public static String deleteOldFilesInDirectory(final Path targetPath) throws IOException {
+		final StringBuilder report = new StringBuilder();
+		if (Files.exists(targetPath)) {
+			for (final Path fileIn : Files.list(targetPath).collect(Collectors.toList())) {
+				final long diff = new Date().getTime() - Files.getLastModifiedTime(fileIn).toMillis();
+				if (diff > PRESERVE_ARCHIVE_MS) {
+					Files.delete(fileIn);
+					report.append("DELETED " + fileIn.toString());
+				}
+			}
+		} else {
+			report.append(targetPath.toString() + " NOT EXISTS\n");
 		}
 		return report.toString();
 	}

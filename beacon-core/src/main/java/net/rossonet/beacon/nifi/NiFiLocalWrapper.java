@@ -216,7 +216,8 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 		final Path sourcePath = Paths.get(DEFAULT_NIFI_XML_ARCHIVE_DIRECTORY);
 		final Path targetPath = Paths.get(BeaconController.DEFAULT_STORAGE_DIRECTORY + NIFI_STORAGE_CONTENT_DIRECTORY);
 		try {
-			final String report = SynchronizeHelper.synchronizeDirectories(sourcePath, targetPath);
+			String report = SynchronizeHelper.synchronizeDirectories(sourcePath, targetPath);
+			report = report + " " + SynchronizeHelper.deleteOldFilesInDirectory(targetPath);
 			logger.info(report);
 		} catch (final Exception e) {
 			logger.severe(LogHelper.stackTraceToString(e));
