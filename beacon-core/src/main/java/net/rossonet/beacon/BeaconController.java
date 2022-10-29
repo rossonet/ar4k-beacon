@@ -1,10 +1,13 @@
 package net.rossonet.beacon;
 
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 import org.rossonet.beacon.utils.LogHelper;
 
+import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.client.model.AccessStatusEntity;
 
 import net.rossonet.beacon.flink.FlinkWrapper;
@@ -288,11 +291,18 @@ public class BeaconController implements AutoCloseable {
 				fireNifiRestore(result);
 			}
 			niFiCheckOk = true;
+
+		} catch (final ApiException a) {
+			logger.severe("trying NiFi Client API access\n" + LogHelper.stackTraceToString(a, 4));
+			for (final Entry<String, List<String>> header : a.getResponseHeaders().entrySet()) {
+				logger.severe(" - " + header.getKey() + " => " + String.join(", ", header.getValue()));
+			}
+
 		} catch (final Exception e) {
 			if (niFiCheckOk) {
 				fireNifiError(e);
 			} else {
-				logger.severe("trying NiFi Client API access\n" + LogHelper.stackTraceToString(e, 5));
+				logger.severe("trying NiFi Client API access\n" + LogHelper.stackTraceToString(e, 4));
 			}
 			niFiCheckOk = false;
 
