@@ -13,6 +13,7 @@ import com.github.hermannpencole.nifi.swagger.client.model.AccessStatusEntity;
 import net.rossonet.beacon.flink.FlinkWrapper;
 import net.rossonet.beacon.keycloak.KeycloakWrapper;
 import net.rossonet.beacon.milo.OpcUaServerParameters;
+import net.rossonet.beacon.milo.OpcUaServerStorage;
 import net.rossonet.beacon.milo.OpcUaServerWrapper;
 import net.rossonet.beacon.nifi.NiFiWrapper;
 import net.rossonet.beacon.web.BeaconWebAppWrapper;
@@ -39,14 +40,14 @@ public class BeaconController implements AutoCloseable {
 	private final ZeppelinWrapper zeppelinWrapper;
 
 	public BeaconController(final ExecutorService executorService, final OpcUaServerParameters opcUaServerParameters,
-			final Class<? extends KeycloakWrapper> keycloakWrapperClass,
+			final OpcUaServerStorage opcUaServerStorage, final Class<? extends KeycloakWrapper> keycloakWrapperClass,
 			final Class<? extends NiFiWrapper> niFiWrapperClass,
 			final Class<? extends ZeppelinWrapper> zeppelinWrapperClass,
 			final Class<? extends FlinkWrapper> flinkWrapperClass,
 			final Class<? extends BeaconWebAppWrapper> wepAppWrapperClass)
 			throws InstantiationException, IllegalAccessException {
 		this.executorService = executorService;
-		opcUaServer = new OpcUaServerWrapper(this, opcUaServerParameters);
+		opcUaServer = new OpcUaServerWrapper(this, opcUaServerParameters, opcUaServerStorage);
 		// TODO completare wrapper Keycloak
 		keycloakWrapper = keycloakWrapperClass.newInstance();
 		keycloakWrapper.setController(this);
