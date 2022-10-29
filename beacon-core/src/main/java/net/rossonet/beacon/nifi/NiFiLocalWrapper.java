@@ -163,8 +163,6 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 		nifiProcessBuilder.directory(workingDirectory);
 		nifiProcessBuilder.environment().put(NIFI_WEB_HTTP_PORT_PARAMETER, DEFAULT_NIFI_PORT);
 		nifiProcessBuilder.environment().put(NIFI_SENSITIVE_PROPS_KEY_PARAMETER, secretKeyArchive);
-		// nifiProcessBuilder.environment().put("SINGLE_USER_CREDENTIALS_USERNAME",
-		// "password");
 		synchronizeBeaconStorageToNiFiArchive();
 		nifiProcessBuilder.inheritIO();
 		nifiProcess = nifiProcessBuilder.start();

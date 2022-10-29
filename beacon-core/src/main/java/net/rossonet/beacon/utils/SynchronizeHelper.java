@@ -24,7 +24,10 @@ public final class SynchronizeHelper {
 			for (final Path fileInSource : Files.list(sourcePath).collect(Collectors.toList())) {
 				if (last == null
 						|| (last.getFileName().toString().contains("xml.gz") && isNewestFile(fileInSource, last))) {
+					report.append(fileInSource + " IS AFTER " + last + "\n");
 					last = fileInSource;
+				} else {
+					report.append(last + " IS AFTER " + fileInSource + "\n");
 				}
 			}
 			if (last != null) {
