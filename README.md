@@ -11,7 +11,7 @@
 
 To build the container
 ```
-docker build --rm -t rossonet/ar4k-beacon:latest .
+# docker build --rm -t rossonet/ar4k-beacon:latest .
 Sending build context to Docker daemon  121.8MB
 Step 1/14 : FROM ubuntu:20.04 as ar4k-builder
  ---> 817578334b4d
@@ -30,8 +30,8 @@ Successfully tagged rossonet/ar4k-beacon:latest
 
 Run the container
 ```
-mkdir ./beacon-data
-docker run -it --rm -v $(pwd)/beacon-data:/beacon-data -p 8080:8080 rossonet/ar4k-beacon:latest
+# mkdir ./beacon-data
+# docker run -it --rm -v $(pwd)/beacon-data:/beacon-data -p 8080:8080 rossonet/ar4k-beacon:latest
 ```
 
 
