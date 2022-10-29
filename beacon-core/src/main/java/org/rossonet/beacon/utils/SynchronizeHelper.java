@@ -32,16 +32,23 @@ public final class SynchronizeHelper {
 
 	public static String synchronizeDirectories(final Path sourcePath, final Path targetPath) throws IOException {
 		final StringBuilder report = new StringBuilder();
-		for (final Path fileInSource : Files.list(sourcePath).collect(Collectors.toList())) {
-			final Path targetFilePath = Paths.get(targetPath.toAbsolutePath().toString(),
-					fileInSource.getFileName().toString());
-			if (Files.exists(targetFilePath) && filesCompareByByte(sourcePath, targetPath) == -1L) {
-				report.append(sourcePath.toString() + " == " + targetPath.toString() + "\n");
-				// file is equals
-			} else {
-				Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-				report.append("COPIED " + sourcePath.toString() + " TO " + targetPath.toString() + "\n");
+		if (Files.exists(sourcePath)) {
+			if (!Files.exists(targetPath)) {
+				Files.createDirectories(targetPath);
 			}
+			for (final Path fileInSource : Files.list(sourcePath).collect(Collectors.toList())) {
+				final Path targetFilePath = Paths.get(targetPath.toAbsolutePath().toString(),
+						fileInSource.getFileName().toString());
+				if (Files.exists(targetFilePath) && filesCompareByByte(sourcePath, targetPath) == -1L) {
+					report.append(sourcePath.toString() + " == " + targetPath.toString() + "\n");
+					// file is equals
+				} else {
+					Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+					report.append("COPIED " + sourcePath.toString() + " TO " + targetPath.toString() + "\n");
+				}
+			}
+		} else {
+			report.append(sourcePath.toString() + " NOT EXISTS\n");
 		}
 		return report.toString();
 	}
