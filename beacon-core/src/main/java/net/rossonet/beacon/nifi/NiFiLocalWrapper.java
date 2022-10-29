@@ -27,14 +27,14 @@ import net.rossonet.beacon.BeaconController;
 
 public class NiFiLocalWrapper implements NiFiWrapper {
 
-	private final class CallableManageLogo implements Callable<Void> {
+	private final class CallablePostBoot implements Callable<Void> {
 
 		@Override
 		public Void call() throws Exception {
 			while (!Files.exists(NIFI_LOGO_PATH)) {
 				try {
 					Thread.sleep(5000L);
-					logger.info("wait for logo file...");
+					logger.info("wait for completed statrtup of NiFi");
 				} catch (final InterruptedException e) {
 					logger.severe(LogHelper.stackTraceToString(e));
 				}
@@ -43,6 +43,7 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 				Thread.sleep(30000L);
 				Files.copy(is, NIFI_LOGO_PATH, StandardCopyOption.REPLACE_EXISTING);
 				logger.info("wrote file " + NIFI_LOGO_PATH.toAbsolutePath().toString());
+				synchronizeBeaconStorageToNiFiArchive();
 			} catch (final Exception e) {
 				logger.severe(LogHelper.stackTraceToString(e));
 			}
@@ -159,7 +160,6 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 		// nifiProcessBuilder.environment().put("SINGLE_USER_CREDENTIALS_USERNAME",
 		// "password");
 		nifiProcessBuilder.inheritIO();
-		synchronizeBeaconStorageToNiFiArchive();
 		nifiProcess = nifiProcessBuilder.start();
 		callLogoManager();
 		createApiClient();
@@ -180,9 +180,10 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 	}
 
 	private void callLogoManager() {
-		final Callable<Void> callable = new CallableManageLogo();
+		final Callable<Void> callable = new CallablePostBoot();
 		final FutureTask<Void> task = new FutureTask<>(callable);
 		final Thread t = new Thread(task);
+		t.setName("nifi-post");
 		t.start();
 	}
 
@@ -198,6 +199,7 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 		final Path sourcePath = Paths.get(BeaconController.DEFAULT_STORAGE_DIRECTORY + NIFI_STORAGE_CONTENT_DIRECTORY);
 		try {
 			final String report = SynchronizeHelper.synchronizeDirectories(sourcePath, targetPath);
+			logger.info(report);
 		} catch (final Exception e) {
 			logger.severe(LogHelper.stackTraceToString(e));
 		}
@@ -208,6 +210,7 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 		final Path targetPath = Paths.get(BeaconController.DEFAULT_STORAGE_DIRECTORY + NIFI_STORAGE_CONTENT_DIRECTORY);
 		try {
 			final String report = SynchronizeHelper.synchronizeDirectories(sourcePath, targetPath);
+			logger.info(report);
 		} catch (final Exception e) {
 			logger.severe(LogHelper.stackTraceToString(e));
 		}
