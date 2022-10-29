@@ -39,12 +39,12 @@ public final class SynchronizeHelper {
 			for (final Path fileInSource : Files.list(sourcePath).collect(Collectors.toList())) {
 				final Path targetFilePath = Paths.get(targetPath.toAbsolutePath().toString(),
 						fileInSource.getFileName().toString());
-				if (Files.exists(targetFilePath) && filesCompareByByte(sourcePath, targetPath) == -1L) {
-					report.append(sourcePath.toString() + " == " + targetPath.toString() + "\n");
+				if (Files.exists(targetFilePath) && filesCompareByByte(fileInSource, targetFilePath) == -1L) {
+					report.append(fileInSource.toString() + " == " + targetFilePath.toString() + "\n");
 					// file is equals
 				} else {
-					Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-					report.append("COPIED " + sourcePath.toString() + " TO " + targetPath.toString() + "\n");
+					Files.copy(fileInSource, targetFilePath, StandardCopyOption.REPLACE_EXISTING);
+					report.append("COPIED " + fileInSource.toString() + " TO " + targetFilePath.toString() + "\n");
 				}
 			}
 		} else {
