@@ -175,6 +175,7 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 
 	@Override
 	public void stopNifi() {
+		synchronizeNiFiArchiveToBeaconStorage();
 		if (nifiProcess != null) {
 			nifiProcess.destroy();
 		}
