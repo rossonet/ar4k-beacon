@@ -14,6 +14,7 @@
     */
 package net.rossonet.beacon.beaconctl;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -55,7 +56,7 @@ public class Beaconctl {
 	private final OpcUaServerParameters opcUAParameters = OpcUaServerParameters.getDockerRossonetParameters();
 
 	private int parallelThreads = Runtime.getRuntime().availableProcessors();
-	private final Map<String, Object> storageMap = new HashMap<>();
+	private final Map<String, Serializable> storageMap = new HashMap<>();
 
 	private boolean wipeContentAtEnd = true;
 
@@ -91,7 +92,7 @@ public class Beaconctl {
 			beaconController = new BeaconController(Executors.newFixedThreadPool(parallelThreads), opcUAParameters,
 					new OpcUaServerStorage() {
 						@Override
-						public Map<String, Object> getMap() {
+						public Map<String, Serializable> getMap() {
 							return storageMap;
 						}
 					}, KeycloakRemoteWrapper.class, NiFiLocalWrapper.class, ZeppelinLocalWrapper.class,
