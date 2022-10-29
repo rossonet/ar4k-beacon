@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import net.rossonet.beacon.BeaconController;
-import net.rossonet.beacon.flink.FlinkWrapper;
+import net.rossonet.beacon.flink.FlinkLocalWrapper;
 import net.rossonet.beacon.keycloak.KeycloakRemoteWrapper;
 import net.rossonet.beacon.milo.OpcUaServerParameters;
 import net.rossonet.beacon.nifi.NiFiLocalWrapper;
@@ -84,8 +84,8 @@ public class Beaconctl {
 		if (isInRossonetContainer) {
 			logger.info("starting beaconctl");
 			beaconController = new BeaconController(Executors.newFixedThreadPool(parallelThreads), opcUAParameters,
-					KeycloakRemoteWrapper.class, NiFiLocalWrapper.class, ZeppelinLocalWrapper.class, FlinkWrapper.class,
-					BeaconWebAppLocalWrapper.class);
+					KeycloakRemoteWrapper.class, NiFiLocalWrapper.class, ZeppelinLocalWrapper.class,
+					FlinkLocalWrapper.class, BeaconWebAppLocalWrapper.class);
 		}
 		beaconController.start();
 		logger.info("starting process completed. Now running");
