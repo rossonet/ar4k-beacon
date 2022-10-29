@@ -25,6 +25,7 @@ frontend
 temp-test-*
 status.json
 cache
+beacon-data
 
 ### OUTPUT ###
 spring-shell.log
