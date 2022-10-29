@@ -1,4 +1,4 @@
-package org.rossonet.beacon.utils;
+package net.rossonet.beacon.utils;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;

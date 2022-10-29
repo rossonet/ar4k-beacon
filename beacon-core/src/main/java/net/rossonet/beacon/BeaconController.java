@@ -5,8 +5,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
-import org.rossonet.beacon.utils.LogHelper;
-
 import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.client.model.AccessStatusEntity;
 
@@ -16,6 +14,7 @@ import net.rossonet.beacon.milo.OpcUaServerParameters;
 import net.rossonet.beacon.milo.OpcUaServerStorage;
 import net.rossonet.beacon.milo.OpcUaServerWrapper;
 import net.rossonet.beacon.nifi.NiFiWrapper;
+import net.rossonet.beacon.utils.LogHelper;
 import net.rossonet.beacon.web.BeaconWebAppWrapper;
 import net.rossonet.beacon.zeppelin.ZeppelinWrapper;
 
