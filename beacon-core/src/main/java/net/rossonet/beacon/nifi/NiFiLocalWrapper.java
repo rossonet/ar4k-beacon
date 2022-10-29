@@ -66,9 +66,13 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 	public static Path NIFI_LOGO_PATH = Paths
 			.get("/opt/nifi/nifi-current/work/jetty/nifi-web-ui-1.18.0.war/webapp/images/nifi-logo.svg");
 	private static final String DEFAULT_NIFI_PORT = "8080";
+	private static final String DEFAULT_SECRET_KEY_ARCHIVE = "p3er4Lt";
 	private static final Logger logger = Logger.getLogger(NiFiLocalWrapper.class.getName());
 	private static final String NIFI_API_PATH = "/nifi-api";
+	private static final String NIFI_SENSITIVE_PROPS_KEY_PARAMETER = "NIFI_SENSITIVE_PROPS_KEY";
+
 	private static final String NIFI_STORAGE_CONTENT_DIRECTORY = "/nifi";
+
 	private static final String NIFI_WEB_HTTP_PORT_PARAMETER = "NIFI_WEB_HTTP_PORT";
 
 	private static String getHostName() {
@@ -85,6 +89,8 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 	private BeaconController beaconController;
 	private Process nifiProcess;
 	private final String pathNifiStartingScript;
+
+	private final String secretKeyArchive;
 
 	private final TimerTask synchronizeConfigTask = new TimerTask() {
 
@@ -106,12 +112,14 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 	private final File workingDirectory;
 
 	public NiFiLocalWrapper() throws IOException {
-		this(new File(DEFAULT_NIFI_DIRECTORY), DEFAULT_NIFI_STARTING_SCRIPT);
+		this(new File(DEFAULT_NIFI_DIRECTORY), DEFAULT_NIFI_STARTING_SCRIPT, DEFAULT_SECRET_KEY_ARCHIVE);
 	}
 
-	public NiFiLocalWrapper(final File workingDirectory, final String pathNifiStartingScript) throws IOException {
+	public NiFiLocalWrapper(final File workingDirectory, final String pathNifiStartingScript,
+			final String secretKeyArchive) throws IOException {
 		this.workingDirectory = workingDirectory;
 		this.pathNifiStartingScript = pathNifiStartingScript;
+		this.secretKeyArchive = secretKeyArchive;
 	}
 
 	@Override
@@ -154,8 +162,7 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 		final ProcessBuilder nifiProcessBuilder = new ProcessBuilder(pathNifiStartingScript);
 		nifiProcessBuilder.directory(workingDirectory);
 		nifiProcessBuilder.environment().put(NIFI_WEB_HTTP_PORT_PARAMETER, DEFAULT_NIFI_PORT);
-		// nifiProcessBuilder.environment().put("SINGLE_USER_CREDENTIALS_USERNAME",
-		// "username");
+		nifiProcessBuilder.environment().put(NIFI_SENSITIVE_PROPS_KEY_PARAMETER, secretKeyArchive);
 		// nifiProcessBuilder.environment().put("SINGLE_USER_CREDENTIALS_USERNAME",
 		// "password");
 		synchronizeBeaconStorageToNiFiArchive();

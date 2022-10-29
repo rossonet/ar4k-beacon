@@ -13,6 +13,7 @@ RUN mv /ar4kAgent/beacon-template-nifi-service/build/libs/beacon-template-nifi-s
 #FROM ubuntu:20.04
 FROM apache/nifi:1.18.0
 ARG MAINTAINER="Andrea Ambrosini <andrea.ambrosini@rossonet.org>"
+RUN mkdir /beacon-data && chown nifi:nifi /beacon-data
 ENTRYPOINT ["java"]
 CMD ["-XX:+UnlockExperimentalVMOptions","-Djava.net.preferIPv4Stack=true","-XX:+UseCGroupMemoryLimitForHeap","-XshowSettings:vm","-Djava.security.egd=file:/dev/./urandom","-jar","/beaconctl.jar"]
 COPY --from=ar4k-builder /result/beaconctl.jar /beaconctl.jar

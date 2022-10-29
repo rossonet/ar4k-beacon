@@ -24,12 +24,12 @@ public final class SynchronizeHelper {
 						|| (last.getFileName().toString().contains("xml.gz") && isNewestFile(fileInSource, last))) {
 					last = fileInSource;
 				}
-				if (last != null) {
-					Files.copy(last, targetPath, StandardCopyOption.REPLACE_EXISTING);
-					report.append("COPIED " + last.toString() + " TO " + targetPath.toString() + "\n");
-				} else {
-					report.append(sourcePath.toString() + " NOT CONTAINS xml.gz FILES\n");
-				}
+			}
+			if (last != null) {
+				Files.copy(last, targetPath, StandardCopyOption.REPLACE_EXISTING);
+				report.append("COPIED " + last.toString() + " TO " + targetPath.toString() + "\n");
+			} else {
+				report.append(sourcePath.toString() + " NOT CONTAINS xml.gz FILES\n");
 			}
 		} else {
 			report.append(sourcePath.toString() + " NOT EXISTS\n");
