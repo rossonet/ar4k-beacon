@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public final class SynchronizeHelper {
 
 	private static final DateTimeFormatter FORMAT_DATE_TIME = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
-	private static final long PRESERVE_ARCHIVE_MS = 0;
+	private static final long PRESERVE_ARCHIVE_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 	public static String copyLastFileToXmlFile(final Path sourcePath, final Path targetPath) throws IOException {
 		final StringBuilder report = new StringBuilder();
@@ -46,7 +46,7 @@ public final class SynchronizeHelper {
 				final long diff = new Date().getTime() - Files.getLastModifiedTime(fileIn).toMillis();
 				if (diff > PRESERVE_ARCHIVE_MS) {
 					Files.delete(fileIn);
-					report.append("DELETED " + fileIn.toString());
+					report.append("DELETED " + fileIn.toString() + "\n");
 				}
 			}
 		} else {
