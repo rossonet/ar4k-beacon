@@ -9,12 +9,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.logging.Logger;
 
 import org.json.JSONObject;
 import org.rossonet.beacon.utils.LogHelper;
+import org.rossonet.beacon.utils.SynchronizeHelper;
 
 import com.github.hermannpencole.nifi.swagger.ApiClient;
 import com.github.hermannpencole.nifi.swagger.Configuration;
@@ -47,21 +50,25 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 		}
 	}
 
+	public static String DEFAULT_NIFI_DIRECTORY = "/opt/nifi/nifi-current";
+
+	public static String DEFAULT_NIFI_STARTING_SCRIPT = "/opt/nifi/scripts/start.sh";
+
 	/*
 	 * I parametri di avvio sono visibili a questo link:
 	 * https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
 	 *
 	 */
 
-	public static String DEFAULT_NIFI_DIRECTORY = "/opt/nifi/nifi-current";
-
-	public static String DEFAULT_NIFI_STARTING_SCRIPT = "/opt/nifi/scripts/start.sh";
 	public static String DEFAULT_NIFI_XML_ARCHIVE_DIRECTORY = DEFAULT_NIFI_DIRECTORY + "/conf/archive";
+
 	public static String DEFAULT_NIFI_XML_FILE = DEFAULT_NIFI_DIRECTORY + "/conf/flow.xml.gz";
 	public static Path NIFI_LOGO_PATH = Paths
 			.get("/opt/nifi/nifi-current/work/jetty/nifi-web-ui-1.18.0.war/webapp/images/nifi-logo.svg");
 	private static final String DEFAULT_NIFI_PORT = "8080";
 	private static final Logger logger = Logger.getLogger(NiFiLocalWrapper.class.getName());
+	private static final String NIFI_API_PATH = "/nifi-api";
+	private static final String NIFI_STORAGE_CONTENT_DIRECTORY = "/nifi";
 	private static final String NIFI_WEB_HTTP_PORT_PARAMETER = "NIFI_WEB_HTTP_PORT";
 
 	private static String getHostName() {
@@ -78,6 +85,21 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 	private BeaconController beaconController;
 	private Process nifiProcess;
 	private final String pathNifiStartingScript;
+
+	private final TimerTask synchronizeConfigTask = new TimerTask() {
+
+		@Override
+		public void run() {
+			try {
+				synchronizeNiFiArchiveToBeaconStorage();
+			} catch (final Exception a) {
+				logger.severe(LogHelper.stackTraceToString(a));
+			}
+
+		}
+	};
+
+	private final Timer timer = new Timer();
 
 	private AccessApi webClientService;
 
@@ -137,9 +159,11 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 		// nifiProcessBuilder.environment().put("SINGLE_USER_CREDENTIALS_USERNAME",
 		// "password");
 		nifiProcessBuilder.inheritIO();
+		synchronizeBeaconStorageToNiFiArchive();
 		nifiProcess = nifiProcessBuilder.start();
 		callLogoManager();
 		createApiClient();
+		timer.schedule(synchronizeConfigTask, 60000, 30000);
 	}
 
 	@Override
@@ -166,7 +190,27 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 		webClientService = new AccessApi();
 		final ApiClient defaultApiClient = Configuration.getDefaultApiClient();
 		webClientService.setApiClient(
-				defaultApiClient.setBasePath("http://" + getHostName() + ":" + DEFAULT_NIFI_PORT + "/nifi-api"));
+				defaultApiClient.setBasePath("http://" + getHostName() + ":" + DEFAULT_NIFI_PORT + NIFI_API_PATH));
+	}
+
+	private void synchronizeBeaconStorageToNiFiArchive() {
+		final Path targetPath = Paths.get(DEFAULT_NIFI_XML_ARCHIVE_DIRECTORY);
+		final Path sourcePath = Paths.get(BeaconController.DEFAULT_STORAGE_DIRECTORY + NIFI_STORAGE_CONTENT_DIRECTORY);
+		try {
+			final String report = SynchronizeHelper.synchronizeDirectories(sourcePath, targetPath);
+		} catch (final Exception e) {
+			logger.severe(LogHelper.stackTraceToString(e));
+		}
+	}
+
+	private void synchronizeNiFiArchiveToBeaconStorage() {
+		final Path sourcePath = Paths.get(DEFAULT_NIFI_XML_ARCHIVE_DIRECTORY);
+		final Path targetPath = Paths.get(BeaconController.DEFAULT_STORAGE_DIRECTORY + NIFI_STORAGE_CONTENT_DIRECTORY);
+		try {
+			final String report = SynchronizeHelper.synchronizeDirectories(sourcePath, targetPath);
+		} catch (final Exception e) {
+			logger.severe(LogHelper.stackTraceToString(e));
+		}
 	}
 
 }
