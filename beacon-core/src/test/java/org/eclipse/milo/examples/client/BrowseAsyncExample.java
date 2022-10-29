@@ -33,12 +33,8 @@ public class BrowseAsyncExample implements ClientExample {
 
 		final T node;
 
-		Tree(T node) {
+		Tree(final T node) {
 			this.node = node;
-		}
-
-		void addChild(T child) {
-			children.add(new Tree<>(child));
 		}
 
 		@Override
@@ -46,9 +42,19 @@ public class BrowseAsyncExample implements ClientExample {
 			return MoreObjects.toStringHelper(this).add("node", node).add("children", children).toString();
 		}
 
+		void addChild(final T child) {
+			children.add(new Tree<>(child));
+		}
+
 	}
 
-	private static String indent(int depth) {
+	public static void main(final String[] args) throws Exception {
+		final BrowseAsyncExample example = new BrowseAsyncExample();
+
+		new ClientExampleRunner(example).run();
+	}
+
+	private static String indent(final int depth) {
 		final StringBuilder s = new StringBuilder();
 		for (int i = 0; i < depth; i++) {
 			s.append("  ");
@@ -56,13 +62,7 @@ public class BrowseAsyncExample implements ClientExample {
 		return s.toString();
 	}
 
-	public static void main(String[] args) throws Exception {
-		final BrowseAsyncExample example = new BrowseAsyncExample();
-
-		new ClientExampleRunner(example).run();
-	}
-
-	private static <T> void traverse(Tree<T> tree, int depth, BiConsumer<Integer, T> consumer) {
+	private static <T> void traverse(final Tree<T> tree, final int depth, final BiConsumer<Integer, T> consumer) {
 		consumer.accept(depth, tree.node);
 
 		tree.children.forEach(child -> traverse(child, depth + 1, consumer));
@@ -70,28 +70,14 @@ public class BrowseAsyncExample implements ClientExample {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private CompletableFuture<Void> browseRecursive(OpcUaClient client, Tree<UaNode> tree) {
-		return client.getAddressSpace().browseNodesAsync(tree.node).thenCompose(nodes -> {
-			// Add each child node to the tree
-			nodes.forEach(tree::addChild);
-
-			// For each child node browse for its children
-			final Stream<CompletableFuture<Void>> futures = tree.children.stream()
-					.map(child -> browseRecursive(client, child));
-
-			// Return a CompletableFuture that completes when the child browses complete
-			return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
-		});
-	}
-
 	@Override
 	public boolean getTestResult() {
-		// TODO Auto-generated method stub
+		// TODO verificare risultato test
 		return true;
 	}
 
 	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
 		// synchronous connect
 		client.connect().get();
 
@@ -109,6 +95,20 @@ public class BrowseAsyncExample implements ClientExample {
 		logger.info("Browse took {}ms", TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS));
 
 		future.complete(client);
+	}
+
+	private CompletableFuture<Void> browseRecursive(final OpcUaClient client, final Tree<UaNode> tree) {
+		return client.getAddressSpace().browseNodesAsync(tree.node).thenCompose(nodes -> {
+			// Add each child node to the tree
+			nodes.forEach(tree::addChild);
+
+			// For each child node browse for its children
+			final Stream<CompletableFuture<Void>> futures = tree.children.stream()
+					.map(child -> browseRecursive(client, child));
+
+			// Return a CompletableFuture that completes when the child browses complete
+			return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
+		});
 	}
 
 }

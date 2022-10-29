@@ -37,15 +37,8 @@ public class ReadExample implements ClientExample {
 
 	@Override
 	public boolean getTestResult() {
-		// TODO Auto-generated method stub
+		// TODO verificare risultato test
 		return true;
-	}
-
-	private CompletableFuture<List<DataValue>> readServerStateAndTime(final OpcUaClient client) {
-		final List<NodeId> nodeIds = ImmutableList.of(Identifiers.Server_ServerStatus_State,
-				Identifiers.Server_ServerStatus_CurrentTime);
-
-		return client.readValues(0.0, TimestampsToReturn.Both, nodeIds);
 	}
 
 	@Override
@@ -69,6 +62,13 @@ public class ReadExample implements ClientExample {
 
 			future.complete(client);
 		});
+	}
+
+	private CompletableFuture<List<DataValue>> readServerStateAndTime(final OpcUaClient client) {
+		final List<NodeId> nodeIds = ImmutableList.of(Identifiers.Server_ServerStatus_State,
+				Identifiers.Server_ServerStatus_CurrentTime);
+
+		return client.readValues(0.0, TimestampsToReturn.Both, nodeIds);
 	}
 
 }

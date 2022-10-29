@@ -34,7 +34,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.ReadRawModifiedDetails
 
 public class HistoryReadExampleProsys implements ClientExample {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final HistoryReadExampleProsys example = new HistoryReadExampleProsys();
 
 		new ClientExampleRunner(example, false).run();
@@ -47,12 +47,12 @@ public class HistoryReadExampleProsys implements ClientExample {
 
 	@Override
 	public boolean getTestResult() {
-		// TODO Auto-generated method stub
+		// TODO verificare risultato test
 		return true;
 	}
 
 	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
 		client.connect().get();
 
 		final HistoryReadDetails historyReadDetails = new ReadRawModifiedDetails(false, DateTime.MIN_VALUE,

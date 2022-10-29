@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 public class BrowseNodeExample implements ClientExample {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final BrowseNodeExample example = new BrowseNodeExample();
 
 		new ClientExampleRunner(example).run();
@@ -31,7 +31,24 @@ public class BrowseNodeExample implements ClientExample {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private void browseNode(String indent, OpcUaClient client, NodeId browseRoot) {
+	@Override
+	public boolean getTestResult() {
+		// TODO verificare risultato test
+		return true;
+	}
+
+	@Override
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
+		// synchronous connect
+		client.connect().get();
+
+		// start browsing at root folder
+		browseNode("", client, Identifiers.RootFolder);
+
+		future.complete(client);
+	}
+
+	private void browseNode(final String indent, final OpcUaClient client, final NodeId browseRoot) {
 		try {
 			final List<? extends UaNode> nodes = client.getAddressSpace().browseNodes(browseRoot);
 
@@ -44,23 +61,6 @@ public class BrowseNodeExample implements ClientExample {
 		} catch (final UaException e) {
 			logger.error("Browsing nodeId={} failed: {}", browseRoot, e.getMessage(), e);
 		}
-	}
-
-	@Override
-	public boolean getTestResult() {
-		// TODO Auto-generated method stub
-		return true;
-	}
-
-	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
-		// synchronous connect
-		client.connect().get();
-
-		// start browsing at root folder
-		browseNode("", client, Identifiers.RootFolder);
-
-		future.complete(client);
 	}
 
 }

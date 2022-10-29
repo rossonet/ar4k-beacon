@@ -39,24 +39,24 @@ import org.slf4j.LoggerFactory;
 
 public class EventSubscriptionExample implements ClientExample {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final EventSubscriptionExample example = new EventSubscriptionExample();
 
 		new ClientExampleRunner(example, true).run();
 	}
 
-	private final Logger logger = LoggerFactory.getLogger(getClass());
-
 	private final AtomicLong clientHandles = new AtomicLong(1L);
+
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Override
 	public boolean getTestResult() {
-		// TODO Auto-generated method stub
+		// TODO verificare risultato test
 		return true;
 	}
 
 	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
 		// synchronous connect
 		client.connect().get();
 

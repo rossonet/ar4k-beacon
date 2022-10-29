@@ -17,7 +17,7 @@ public class ConsoleTest {
 	@Test
 	@Order(1)
 	public void checkApp() throws Exception {
-		Beaconctl.runApp(new String[0]);
+		new Beaconctl(new String[0]).runApp();
 		logger.info("ok");
 	}
 

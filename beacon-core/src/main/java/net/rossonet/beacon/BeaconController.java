@@ -1,50 +1,155 @@
 package net.rossonet.beacon;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 import org.rossonet.beacon.utils.LogHelper;
 
+import com.github.hermannpencole.nifi.swagger.client.model.AccessStatusEntity;
+
 import net.rossonet.beacon.flink.FlinkWrapper;
+import net.rossonet.beacon.keycloak.KeycloakWrapper;
+import net.rossonet.beacon.milo.OpcUaServerParameters;
+import net.rossonet.beacon.milo.OpcUaServerWrapper;
 import net.rossonet.beacon.nifi.NiFiWrapper;
+import net.rossonet.beacon.web.BeaconWebAppWrapper;
+import net.rossonet.beacon.zeppelin.ZeppelinWrapper;
 
 public class BeaconController implements AutoCloseable {
+	public static final String DEFAULT_STORAGE_DIRECTORY = "/beacon-data";
 	public static final long WHILE_DELAY = 60 * 1000L;
 	private static final Logger logger = Logger.getLogger(BeaconController.class.getName());
 	private final ExecutorService executorService;
-	private FlinkWrapper flinkWrapper = null;
+	private final FlinkWrapper flinkWrapper;
 
-	private NiFiWrapper nifi = null;
+	private final KeycloakWrapper keycloakWrapper;
+
+	private boolean niFiCheckOk = true;
+
+	private final NiFiWrapper nifiWrapper;
+
+	private final OpcUaServerWrapper opcUaServer;
 
 	private boolean running = false;
 
-	public BeaconController(final ExecutorService executorService) {
+	private final BeaconWebAppWrapper wepAppWrapper;
+	private final ZeppelinWrapper zeppelinWrapper;
+
+	public BeaconController(final ExecutorService executorService, final OpcUaServerParameters opcUaServerParameters,
+			final Class<? extends KeycloakWrapper> keycloakWrapperClass,
+			final Class<? extends NiFiWrapper> niFiWrapperClass,
+			final Class<? extends ZeppelinWrapper> zeppelinWrapperClass,
+			final Class<? extends FlinkWrapper> flinkWrapperClass,
+			final Class<? extends BeaconWebAppWrapper> wepAppWrapperClass)
+			throws InstantiationException, IllegalAccessException {
 		this.executorService = executorService;
+		opcUaServer = new OpcUaServerWrapper(this, opcUaServerParameters);
+		// TODO completare wrapper Keycloak
+		keycloakWrapper = keycloakWrapperClass.newInstance();
+		keycloakWrapper.setController(this);
+		nifiWrapper = niFiWrapperClass.newInstance();
+		nifiWrapper.setController(this);
+		// TODO completare wrapper Flink
+		flinkWrapper = flinkWrapperClass.newInstance();
+		flinkWrapper.setController(this);
+		// TODO completare wrapper Zeppelin
+		zeppelinWrapper = zeppelinWrapperClass.newInstance();
+		zeppelinWrapper.setController(this);
+		// TODO completare web app Beacon
+		wepAppWrapper = wepAppWrapperClass.newInstance();
+		wepAppWrapper.setController(this);
+		startOpcUaServer();
 	}
 
 	@Override
 	public void close() throws Exception {
-		if (flinkWrapper != null) {
-			flinkWrapper.stop();
-		}
-		if (nifi != null) {
-			nifi.stopNifi();
-		}
+		stop();
+	}
+
+	public ExecutorService getExecutorService() {
+		return executorService;
+	}
+
+	public FlinkWrapper getFlinkWrapper() {
+		return flinkWrapper;
+	}
+
+	public KeycloakWrapper getKeycloakWrapper() {
+		return keycloakWrapper;
+	}
+
+	public NiFiWrapper getNifiWrapper() {
+		return nifiWrapper;
+	}
+
+	public OpcUaServerWrapper getOpcUaServer() {
+		return opcUaServer;
+	}
+
+	public BeaconWebAppWrapper getWepAppWrapper() {
+		return wepAppWrapper;
+	}
+
+	public ZeppelinWrapper getZeppelinWrapper() {
+		return zeppelinWrapper;
+	}
+
+	public boolean isRunning() {
+		return running;
 	}
 
 	public void start() {
+		startKeycloak();
 		startFlink();
 		startNifi();
+		startZeppelin();
+		startWebApp();
 		running = true;
 	}
 
 	public void stop() {
 		running = false;
 		try {
-			close();
+			if (opcUaServer != null) {
+				opcUaServer.stopOpcServer();
+			}
 		} catch (final Exception e) {
-			logger.severe("exception stopping Beacon Controller\n" + LogHelper.stackTraceToString(e));
+			logger.severe("exception stopping opcUaServer\n" + LogHelper.stackTraceToString(e));
+		}
+		try {
+			if (wepAppWrapper != null) {
+				wepAppWrapper.stopWebApp();
+			}
+		} catch (final Exception e) {
+			logger.severe("exception stopping wepAppWrapper\n" + LogHelper.stackTraceToString(e));
+		}
+		try {
+			if (flinkWrapper != null) {
+				flinkWrapper.stopFlink();
+			}
+		} catch (final Exception e) {
+			logger.severe("exception stopping flinkWrapper\n" + LogHelper.stackTraceToString(e));
+		}
+		try {
+			if (nifiWrapper != null) {
+				nifiWrapper.stopNifi();
+			}
+		} catch (final Exception e) {
+			logger.severe("exception stopping nifiWrapper\n" + LogHelper.stackTraceToString(e));
+		}
+		try {
+			if (zeppelinWrapper != null) {
+				zeppelinWrapper.stopZeppelin();
+			}
+		} catch (final Exception e) {
+			logger.severe("exception stopping zeppelinWrapper\n" + LogHelper.stackTraceToString(e));
+		}
+		try {
+			if (keycloakWrapper != null) {
+				keycloakWrapper.stopKeycloak();
+			}
+		} catch (final Exception e) {
+			logger.severe("exception stopping keycloakWrapper\n" + LogHelper.stackTraceToString(e));
 		}
 	}
 
@@ -52,6 +157,7 @@ public class BeaconController implements AutoCloseable {
 		while (running) {
 			try {
 				Thread.sleep(WHILE_DELAY);
+				tryNifiClient();
 			} catch (final InterruptedException e) {
 				logger.severe("interrupted wait thread\n" + LogHelper.stackTraceToString(e));
 			}
@@ -60,8 +166,56 @@ public class BeaconController implements AutoCloseable {
 
 	}
 
+	public void wipe() {
+		// TODO implementare distruzione file locali
+
+	}
+
+	private void fireNifiError(final Exception e) {
+		logger.severe("exception trying NiFi API client\n" + LogHelper.stackTraceToString(e, 15));
+
+	}
+
+	private void fireNifiRestore(final AccessStatusEntity accessStatusEntity) {
+		logger.info("AccessStatus to NiFi " + accessStatusEntity.toString());
+	}
+
 	private void startFlink() {
-		flinkWrapper = new FlinkWrapper();
+
+		executorService.submit(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					Thread.currentThread().setName("nifi-flink");
+					logger.info("starting Apache Flink");
+					flinkWrapper.startFlink();
+				} catch (final Exception e) {
+					logger.severe("exception in Apache Flink\n" + LogHelper.stackTraceToString(e));
+				}
+
+			}
+		});
+
+	}
+
+	private void startKeycloak() {
+
+		executorService.submit(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					Thread.currentThread().setName("keycloak-wrapper");
+					logger.info("starting RedHat Keycloak");
+					keycloakWrapper.startKeycloak();
+				} catch (final Exception e) {
+					logger.severe("exception in RedHat Keycloak\n" + LogHelper.stackTraceToString(e));
+				}
+
+			}
+		});
+
 	}
 
 	private void startNifi() {
@@ -73,14 +227,73 @@ public class BeaconController implements AutoCloseable {
 				try {
 					Thread.currentThread().setName("nifi-wrapper");
 					logger.info("starting Apache NiFi");
-					nifi = new NiFiWrapper();
-				} catch (final IOException e) {
+					nifiWrapper.startNifi();
+				} catch (final Exception e) {
 					logger.severe("exception in Apache NiFi\n" + LogHelper.stackTraceToString(e));
 				}
 
 			}
 		});
 
+	}
+
+	private void startOpcUaServer() {
+		opcUaServer.startOpcServer();
+
+	}
+
+	private void startWebApp() {
+
+		executorService.submit(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					Thread.currentThread().setName("webapp-wrapper");
+					logger.info("starting Beacon Webapp");
+					wepAppWrapper.startWebApp();
+				} catch (final Exception e) {
+					logger.severe("exception in Beacon Webapp\n" + LogHelper.stackTraceToString(e));
+				}
+
+			}
+		});
+
+	}
+
+	private void startZeppelin() {
+
+		executorService.submit(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					Thread.currentThread().setName("zeppelin-wrapper");
+					logger.info("starting Apache Zeppelin");
+					zeppelinWrapper.startZeppelin();
+				} catch (final Exception e) {
+					logger.severe("exception in Apache Zeppelin\n" + LogHelper.stackTraceToString(e));
+				}
+
+			}
+		});
+
+	}
+
+	private void tryNifiClient() {
+		try {
+			final AccessStatusEntity result = nifiWrapper.getWebClientApi().getAccessStatus();
+			if (niFiCheckOk) {
+				fireNifiRestore(result);
+			}
+			niFiCheckOk = true;
+		} catch (final Exception e) {
+			if (niFiCheckOk) {
+				fireNifiError(e);
+			}
+			niFiCheckOk = false;
+
+		}
 	}
 
 }

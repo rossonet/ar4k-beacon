@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class SubscriptionExample implements ClientExample {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final SubscriptionExample example = new SubscriptionExample();
 
 		new ClientExampleRunner(example).run();
@@ -44,17 +44,12 @@ public class SubscriptionExample implements ClientExample {
 
 	@Override
 	public boolean getTestResult() {
-		// TODO Auto-generated method stub
+		// TODO verificare risultato test
 		return true;
 	}
 
-	private void onSubscriptionValue(UaMonitoredItem item, DataValue value) {
-		logger.info("subscription value received: item={}, value={}", item.getReadValueId().getNodeId(),
-				value.getValue());
-	}
-
 	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
 		// synchronous connect
 		client.connect().get();
 
@@ -106,6 +101,11 @@ public class SubscriptionExample implements ClientExample {
 		// let the example run for 5 seconds then terminate
 		Thread.sleep(5000);
 		future.complete(client);
+	}
+
+	private void onSubscriptionValue(final UaMonitoredItem item, final DataValue value) {
+		logger.info("subscription value received: item={}, value={}", item.getReadValueId().getNodeId(),
+				value.getValue());
 	}
 
 }

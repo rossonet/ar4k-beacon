@@ -1,18 +1,11 @@
 package net.rossonet.beacon.flink;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import net.rossonet.beacon.BeaconWrapper;
 
-public class FlinkWrapper {
+public interface FlinkWrapper extends BeaconWrapper {
 
-	private final StreamExecutionEnvironment executionEnvironment = StreamExecutionEnvironment
-			.getExecutionEnvironment();
+	void startFlink();
 
-	public StreamExecutionEnvironment getExecutionEnvironment() {
-		return executionEnvironment;
-	}
-
-	public void stop() {
-		executionEnvironment.clearJobListeners();
-	}
+	void stopFlink();
 
 }

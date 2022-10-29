@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 public class MethodExample implements ClientExample {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final MethodExample example = new MethodExample();
 
 		new ClientExampleRunner(example).run();
@@ -35,12 +35,12 @@ public class MethodExample implements ClientExample {
 
 	@Override
 	public boolean getTestResult() {
-		// TODO Auto-generated method stub
+		// TODO verificare risultato test
 		return true;
 	}
 
 	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
 		// synchronous connect
 		client.connect().get();
 
@@ -55,7 +55,7 @@ public class MethodExample implements ClientExample {
 		});
 	}
 
-	private CompletableFuture<Double> sqrt(OpcUaClient client, Double input) {
+	private CompletableFuture<Double> sqrt(final OpcUaClient client, final Double input) {
 		final NodeId objectId = NodeId.parse("ns=2;s=HelloWorld");
 		final NodeId methodId = NodeId.parse("ns=2;s=HelloWorld/sqrt(x)");
 

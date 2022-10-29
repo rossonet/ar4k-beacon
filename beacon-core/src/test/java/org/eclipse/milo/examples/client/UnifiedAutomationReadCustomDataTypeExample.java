@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  */
 public class UnifiedAutomationReadCustomDataTypeExample implements ClientExample {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final UnifiedAutomationReadCustomDataTypeExample example = new UnifiedAutomationReadCustomDataTypeExample();
 
 		new ClientExampleRunner(example, false).run();
@@ -47,12 +47,12 @@ public class UnifiedAutomationReadCustomDataTypeExample implements ClientExample
 
 	@Override
 	public boolean getTestResult() {
-		// TODO Auto-generated method stub
+		// TODO verificare risultato test
 		return true;
 	}
 
 	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
 		// Decoding a struct with custom DataType requires a DataTypeManager
 		// that has the codec registered with it.
 		// Add a SessionInitializer that will read any DataTypeDictionary

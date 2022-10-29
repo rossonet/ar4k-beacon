@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 public class MethodExample2 implements ClientExample {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final MethodExample2 example = new MethodExample2();
 
 		new ClientExampleRunner(example).run();
@@ -37,38 +37,12 @@ public class MethodExample2 implements ClientExample {
 
 	@Override
 	public boolean getTestResult() {
-		// TODO Auto-generated method stub
+		// TODO verificare risultato test
 		return true;
 	}
 
-	private void logArguments(Argument[] arguments, DataTypeTree dataTypeTree, boolean input) {
-		if (arguments.length == 0) {
-			logger.info("{} arguments: none", input ? "Input" : "Output");
-		} else {
-			logger.info("{} arguments:", input ? "Input" : "Output");
-			for (final Argument argument : arguments) {
-				final NodeId dataTypeId = argument.getDataType();
-				final DataTypeTree.DataType dataType = dataTypeTree.getDataType(dataTypeId);
-				assert dataType != null;
-				final String dataTypeName = dataType.getBrowseName().getName();
-
-				logger.info("  {}: {} ({}) \"{}\"", argument.getName(), dataTypeName, dataTypeId.toParseableString(),
-						argument.getDescription().getText());
-			}
-		}
-	}
-
-	private void logArguments(OpcUaClient client, UaMethod method) throws UaException {
-		final DataTypeTree dataTypeTree = DataTypeTreeBuilder.build(client);
-		final Argument[] inputArguments = method.getInputArguments();
-		final Argument[] outputArguments = method.getOutputArguments();
-
-		logArguments(inputArguments, dataTypeTree, true);
-		logArguments(outputArguments, dataTypeTree, false);
-	}
-
 	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
 		// synchronous connect
 		client.connect().get();
 
@@ -85,6 +59,32 @@ public class MethodExample2 implements ClientExample {
 		logger.info("Output values: " + Arrays.toString(outputs));
 
 		future.complete(client);
+	}
+
+	private void logArguments(final Argument[] arguments, final DataTypeTree dataTypeTree, final boolean input) {
+		if (arguments.length == 0) {
+			logger.info("{} arguments: none", input ? "Input" : "Output");
+		} else {
+			logger.info("{} arguments:", input ? "Input" : "Output");
+			for (final Argument argument : arguments) {
+				final NodeId dataTypeId = argument.getDataType();
+				final DataTypeTree.DataType dataType = dataTypeTree.getDataType(dataTypeId);
+				assert dataType != null;
+				final String dataTypeName = dataType.getBrowseName().getName();
+
+				logger.info("  {}: {} ({}) \"{}\"", argument.getName(), dataTypeName, dataTypeId.toParseableString(),
+						argument.getDescription().getText());
+			}
+		}
+	}
+
+	private void logArguments(final OpcUaClient client, final UaMethod method) throws UaException {
+		final DataTypeTree dataTypeTree = DataTypeTreeBuilder.build(client);
+		final Argument[] inputArguments = method.getInputArguments();
+		final Argument[] outputArguments = method.getOutputArguments();
+
+		logArguments(inputArguments, dataTypeTree, true);
+		logArguments(outputArguments, dataTypeTree, false);
 	}
 
 }

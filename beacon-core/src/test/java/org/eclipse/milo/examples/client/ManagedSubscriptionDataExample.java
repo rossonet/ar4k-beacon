@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public class ManagedSubscriptionDataExample implements ClientExample {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final ManagedSubscriptionDataExample example = new ManagedSubscriptionDataExample();
 
 		new ClientExampleRunner(example).run();
@@ -31,12 +31,12 @@ public class ManagedSubscriptionDataExample implements ClientExample {
 
 	@Override
 	public boolean getTestResult() {
-		// TODO Auto-generated method stub
+		// TODO verificare risultato test
 		return true;
 	}
 
 	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
 		client.connect().get();
 
 		final ManagedSubscription subscription = ManagedSubscription.create(client);

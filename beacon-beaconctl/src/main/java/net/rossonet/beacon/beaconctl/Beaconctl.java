@@ -14,13 +14,16 @@
     */
 package net.rossonet.beacon.beaconctl;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import net.rossonet.beacon.BeaconController;
+import net.rossonet.beacon.flink.FlinkWrapper;
+import net.rossonet.beacon.keycloak.KeycloakRemoteWrapper;
+import net.rossonet.beacon.milo.OpcUaServerParameters;
+import net.rossonet.beacon.nifi.NiFiLocalWrapper;
+import net.rossonet.beacon.web.BeaconWebAppLocalWrapper;
+import net.rossonet.beacon.zeppelin.ZeppelinLocalWrapper;
 
 /**
  * Classe main per avvio
@@ -29,33 +32,79 @@ import net.rossonet.beacon.BeaconController;
  */
 public class Beaconctl {
 
-	private static int identLevelStatusFile = 2;
 	private static final Logger logger = Logger.getLogger(Beaconctl.class.getName());
-
-	public static int getIdentLevelStatusFile() {
-		return identLevelStatusFile;
-	}
+	private static final int SYSTEM_EXIT_GENERAL_ERROR = 300;
 
 	public static void main(final String[] args) {
-		runApp(args);
+		try {
+			final Beaconctl beaconctl = new Beaconctl(args);
+			beaconctl.runApp();
+		} catch (final Exception e) {
+			e.printStackTrace();
+			System.exit(SYSTEM_EXIT_GENERAL_ERROR);
+		}
 	}
 
-	public static void runApp(final String[] args) {
+	private final String[] commanLineArgs;
+	// TODO completare esecuzione fuori da container Rossonet
+	private boolean isInRossonetContainer = true;
+
+	private final OpcUaServerParameters opcUAParameters = OpcUaServerParameters.getDockerRossonetParameters();
+
+	private int parallelThreads = Runtime.getRuntime().availableProcessors();
+	private boolean wipeContentAtEnd = true;
+
+	public Beaconctl(final String[] args) {
+		this.commanLineArgs = args;
+	}
+
+	public String[] getCommanLineArgs() {
+		return commanLineArgs;
+	}
+
+	public OpcUaServerParameters getOpcUAParameters() {
+		return opcUAParameters;
+	}
+
+	public int getParallelThreads() {
+		return parallelThreads;
+	}
+
+	public boolean isInRossonetContainer() {
+		return isInRossonetContainer;
+	}
+
+	public boolean isWipeContentAtEnd() {
+		return wipeContentAtEnd;
+	}
+
+	public void runApp() throws InstantiationException, IllegalAccessException {
 		Thread.currentThread().setName("beacon-main");
-		logger.info("starting beaconctl");
-		final BeaconController beaconController = new BeaconController(Executors.newFixedThreadPool(4));
+		BeaconController beaconController = null;
+		if (isInRossonetContainer) {
+			logger.info("starting beaconctl");
+			beaconController = new BeaconController(Executors.newFixedThreadPool(parallelThreads), opcUAParameters,
+					KeycloakRemoteWrapper.class, NiFiLocalWrapper.class, ZeppelinLocalWrapper.class, FlinkWrapper.class,
+					BeaconWebAppLocalWrapper.class);
+		}
 		beaconController.start();
+		logger.info("starting process completed. Now running");
 		beaconController.waitTermination();
+		if (wipeContentAtEnd) {
+			beaconController.wipe();
+		}
 	}
 
-	public static void setIdentLevelStatusFile(final int identLevelStatusFile) {
-		Beaconctl.identLevelStatusFile = identLevelStatusFile;
+	private void setInRossonetContainer(final boolean isInRossonetContainer) {
+		this.isInRossonetContainer = isInRossonetContainer;
 	}
 
-	public static final void writeStringToFile(final String text, final String fileName) throws IOException {
-		final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
-		writer.write(text);
-		writer.close();
+	private void setParallelThreads(final int parallelThreads) {
+		this.parallelThreads = parallelThreads;
+	}
+
+	private void setWipeContentAtEnd(final boolean wipeContentAtEnd) {
+		this.wipeContentAtEnd = wipeContentAtEnd;
 	}
 
 }

@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 public class ReadWriteCustomDataTypeNodeExample implements ClientExample {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final ReadWriteCustomDataTypeNodeExample example = new ReadWriteCustomDataTypeNodeExample();
 
 		new ClientExampleRunner(example).run();
@@ -39,31 +39,12 @@ public class ReadWriteCustomDataTypeNodeExample implements ClientExample {
 
 	@Override
 	public boolean getTestResult() {
-		// TODO Auto-generated method stub
+		// TODO verificare risultato test
 		return true;
 	}
 
-	private void registerCustomCodec(OpcUaClient client) {
-		final NodeId dataTypeId = CustomStructType.TYPE_ID.toNodeId(client.getNamespaceTable())
-				.orElseThrow(() -> new IllegalStateException("namespace not found"));
-
-		final NodeId binaryEncodingId = CustomStructType.BINARY_ENCODING_ID.toNodeId(client.getNamespaceTable())
-				.orElseThrow(() -> new IllegalStateException("namespace not found"));
-
-		// Register codec with the client's DataTypeManager instance.
-		// We need to register it by both its encodingId and its dataTypeId because it
-		// may be
-		// looked up by either depending on the context.
-
-		client.getStaticDataTypeManager().registerCodec(binaryEncodingId, new CustomStructType.Codec().asBinaryCodec());
-
-		client.getStaticDataTypeManager().registerCodec(
-				new QualifiedName(dataTypeId.getNamespaceIndex(), "CustomStructType"), dataTypeId,
-				new CustomStructType.Codec().asBinaryCodec());
-	}
-
 	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
 		// synchronous connect
 		client.connect().get();
 
@@ -104,6 +85,25 @@ public class ReadWriteCustomDataTypeNodeExample implements ClientExample {
 		logger.info("Decoded={}", decoded);
 
 		future.complete(client);
+	}
+
+	private void registerCustomCodec(final OpcUaClient client) {
+		final NodeId dataTypeId = CustomStructType.TYPE_ID.toNodeId(client.getNamespaceTable())
+				.orElseThrow(() -> new IllegalStateException("namespace not found"));
+
+		final NodeId binaryEncodingId = CustomStructType.BINARY_ENCODING_ID.toNodeId(client.getNamespaceTable())
+				.orElseThrow(() -> new IllegalStateException("namespace not found"));
+
+		// Register codec with the client's DataTypeManager instance.
+		// We need to register it by both its encodingId and its dataTypeId because it
+		// may be
+		// looked up by either depending on the context.
+
+		client.getStaticDataTypeManager().registerCodec(binaryEncodingId, new CustomStructType.Codec().asBinaryCodec());
+
+		client.getStaticDataTypeManager().registerCodec(
+				new QualifiedName(dataTypeId.getNamespaceIndex(), "CustomStructType"), dataTypeId,
+				new CustomStructType.Codec().asBinaryCodec());
 	}
 
 }

@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 public class ReadNodeExample implements ClientExample {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final ReadNodeExample example = new ReadNodeExample();
 
 		new ClientExampleRunner(example).run();
@@ -36,12 +36,12 @@ public class ReadNodeExample implements ClientExample {
 
 	@Override
 	public boolean getTestResult() {
-		// TODO Auto-generated method stub
+		// TODO verificare risultato test
 		return true;
 	}
 
 	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
 		// synchronous connect
 		client.connect().get();
 

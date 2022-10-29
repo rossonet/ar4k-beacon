@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 public class BrowseExample implements ClientExample {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final BrowseExample example = new BrowseExample();
 
 		new ClientExampleRunner(example).run();
@@ -39,7 +39,24 @@ public class BrowseExample implements ClientExample {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private void browseNode(String indent, OpcUaClient client, NodeId browseRoot) {
+	@Override
+	public boolean getTestResult() {
+		// TODO verificare risultato test
+		return true;
+	}
+
+	@Override
+	public void run(final OpcUaClient client, final CompletableFuture<OpcUaClient> future) throws Exception {
+		// synchronous connect
+		client.connect().get();
+
+		// start browsing at root folder
+		browseNode("", client, Identifiers.RootFolder);
+
+		future.complete(client);
+	}
+
+	private void browseNode(final String indent, final OpcUaClient client, final NodeId browseRoot) {
 		final BrowseDescription browse = new BrowseDescription(browseRoot, BrowseDirection.Forward,
 				Identifiers.References, true, uint(NodeClass.Object.getValue() | NodeClass.Variable.getValue()),
 				uint(BrowseResultMask.All.getValue()));
@@ -59,23 +76,6 @@ public class BrowseExample implements ClientExample {
 		} catch (InterruptedException | ExecutionException e) {
 			logger.error("Browsing nodeId={} failed: {}", browseRoot, e.getMessage(), e);
 		}
-	}
-
-	@Override
-	public boolean getTestResult() {
-		// TODO Auto-generated method stub
-		return true;
-	}
-
-	@Override
-	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
-		// synchronous connect
-		client.connect().get();
-
-		// start browsing at root folder
-		browseNode("", client, Identifiers.RootFolder);
-
-		future.complete(client);
 	}
 
 }

@@ -34,14 +34,29 @@ apply plugin: 'signing'
 apply plugin: 'maven-publish'
 
 dependencies {
+  api group: 'org.json', name: 'json', version: '20220924'
+  // NiFi Rest API Client and Registry Client
+  // https://mvnrepository.com/artifact/org.apache.nifi.registry/nifi-registry-client
+  // https://nifi.apache.org/docs/nifi-registry-docs/index.html
+  api group: 'org.apache.nifi.registry', name: 'nifi-registry-client', version: '1.18.0'
+  // https://github.com/hermannpencole/nifi-swagger-client
+  api "com.github.hermannpencole:nifi-swagger-client:1.1.0"
+  // Keycloak admin client - https://www.keycloak.org/docs-api/18.0/rest-api/
+  api group: 'org.keycloak', name: 'keycloak-admin-client', version: '19.0.3'
+  // Zeppelin Client https://zeppelin.apache.org/docs/0.10.1/usage/zeppelin_sdk/client_api.html
+  // https://zeppelin.apache.org/docs/0.10.1/usage/rest_api/
+  api group: 'org.apache.zeppelin', name: 'zeppelin-client', version: '0.10.1'
+  // Flink Client https://flink.apache.org/
   api group: 'org.apache.flink', name: 'flink-java', version: '1.15.2'
   api group: 'org.apache.flink', name: 'flink-streaming-java', version: '1.15.2'
   api group: 'org.apache.flink', name: 'flink-clients', version: '1.15.2'
+  // Opc UA Milo https://github.com/eclipse/milo
   api group: 'org.eclipse.milo', name: 'sdk-client', version: '0.6.8'
   api group: 'org.eclipse.milo', name: 'sdk-server', version: '0.6.8'
   api group: 'org.eclipse.milo', name: 'dictionary-manager', version: '0.6.8'
   api group: 'org.eclipse.milo', name: 'dictionary-reader', version: '0.6.8'
   api group: 'org.eclipse.milo', name: 'bsd-parser-core', version: '0.3.8'
+  // Logger implementation
   implementation 'org.slf4j:slf4j-api:2.0.3'
 
   // Test Tools
