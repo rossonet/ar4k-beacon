@@ -22,7 +22,7 @@ public final class SynchronizeHelper {
 		if (Files.exists(sourcePath)) {
 			Path last = null;
 			for (final Path fileInSource : Files.list(sourcePath).collect(Collectors.toList())) {
-				if (last.getFileName().toString().contains("xml.gz")
+				if (fileInSource.getFileName().toString().contains("xml.gz")
 						&& (last == null || isNewestFile(fileInSource, last))) {
 					report.append(fileInSource + " IS AFTER " + last + "\n");
 					last = fileInSource;
