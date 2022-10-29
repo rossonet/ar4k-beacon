@@ -24,7 +24,7 @@ public class BeaconController implements AutoCloseable {
 
 	private final KeycloakWrapper keycloakWrapper;
 
-	private boolean niFiCheckOk = true;
+	private boolean niFiCheckOk = false;
 
 	private final NiFiWrapper nifiWrapper;
 
@@ -283,7 +283,7 @@ public class BeaconController implements AutoCloseable {
 	private void tryNifiClient() {
 		try {
 			final AccessStatusEntity result = nifiWrapper.getWebClientApi().getAccessStatus();
-			if (niFiCheckOk) {
+			if (!niFiCheckOk) {
 				fireNifiRestore(result);
 			}
 			niFiCheckOk = true;

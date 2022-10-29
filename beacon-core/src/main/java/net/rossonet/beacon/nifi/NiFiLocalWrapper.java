@@ -22,12 +22,6 @@ import net.rossonet.beacon.BeaconController;
 
 public class NiFiLocalWrapper implements NiFiWrapper {
 
-	/*
-	 * I parametri di avvio sono visibili a questo link:
-	 * https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
-	 *
-	 */
-
 	private final class CallableManageLogo implements Callable<Void> {
 
 		@Override
@@ -51,12 +45,20 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 		}
 	}
 
+	/*
+	 * I parametri di avvio sono visibili a questo link:
+	 * https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
+	 *
+	 */
+
 	public static String DEFAULT_NIFI_DIRECTORY = "/opt/nifi/nifi-current";
+
 	public static String DEFAULT_NIFI_STARTING_SCRIPT = "/opt/nifi/scripts/start.sh";
 	public static String DEFAULT_NIFI_XML_ARCHIVE_DIRECTORY = DEFAULT_NIFI_DIRECTORY + "/conf/archive";
 	public static String DEFAULT_NIFI_XML_FILE = DEFAULT_NIFI_DIRECTORY + "/conf/flow.xml.gz";
 	public static Path NIFI_LOGO_PATH = Paths
 			.get("/opt/nifi/nifi-current/work/jetty/nifi-web-ui-1.18.0.war/webapp/images/nifi-logo.svg");
+	private static final String DEFAULT_NIFI_PORT = "8080";
 	private static final Logger logger = Logger.getLogger(NiFiLocalWrapper.class.getName());
 	private static final String NIFI_WEB_HTTP_PORT_PARAMETER = "NIFI_WEB_HTTP_PORT";
 
@@ -115,7 +117,7 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 	public void startNifi() throws IOException {
 		final ProcessBuilder nifiProcessBuilder = new ProcessBuilder(pathNifiStartingScript);
 		nifiProcessBuilder.directory(workingDirectory);
-		nifiProcessBuilder.environment().put(NIFI_WEB_HTTP_PORT_PARAMETER, "8080");
+		nifiProcessBuilder.environment().put(NIFI_WEB_HTTP_PORT_PARAMETER, DEFAULT_NIFI_PORT);
 		// nifiProcessBuilder.environment().put("SINGLE_USER_CREDENTIALS_USERNAME",
 		// "username");
 		// nifiProcessBuilder.environment().put("SINGLE_USER_CREDENTIALS_USERNAME",
@@ -149,7 +151,8 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 	private void createApiClient() {
 		webClientService = new AccessApi();
 		final ApiClient defaultApiClient = Configuration.getDefaultApiClient();
-		webClientService.setApiClient(defaultApiClient);
+		webClientService
+				.setApiClient(defaultApiClient.setBasePath("http://localhost:" + DEFAULT_NIFI_PORT + "/nifi-api"));
 	}
 
 }
