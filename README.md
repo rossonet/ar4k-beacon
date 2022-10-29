@@ -30,7 +30,8 @@ Successfully tagged rossonet/ar4k-beacon:latest
 
 Run the container
 ```
-docker run -it --rm -p 8080:8080 rossonet/ar4k-beacon:latest
+mkdir ./beacon-data
+docker run -it --rm -v $(pwd)/beacon-data:/beacon-data -p 8080:8080 rossonet/ar4k-beacon:latest
 ```
 
 

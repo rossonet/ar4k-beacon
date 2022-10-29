@@ -302,7 +302,7 @@ public class BeaconController implements AutoCloseable {
 			if (niFiCheckOk) {
 				fireNifiError(e);
 			} else {
-				logger.severe("trying NiFi Client API access\n" + LogHelper.stackTraceToString(e, 4));
+				logger.severe("trying NiFi Client API access\n" + LogHelper.stackTraceToString(e, 2));
 			}
 			niFiCheckOk = false;
 
