@@ -43,7 +43,6 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 				Thread.sleep(30000L);
 				Files.copy(is, NIFI_LOGO_PATH, StandardCopyOption.REPLACE_EXISTING);
 				logger.info("wrote file " + NIFI_LOGO_PATH.toAbsolutePath().toString());
-				synchronizeBeaconStorageToNiFiArchive();
 			} catch (final Exception e) {
 				logger.severe(LogHelper.stackTraceToString(e));
 			}
@@ -159,6 +158,7 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 		// "username");
 		// nifiProcessBuilder.environment().put("SINGLE_USER_CREDENTIALS_USERNAME",
 		// "password");
+		synchronizeBeaconStorageToNiFiArchive();
 		nifiProcessBuilder.inheritIO();
 		nifiProcess = nifiProcessBuilder.start();
 		callLogoManager();
