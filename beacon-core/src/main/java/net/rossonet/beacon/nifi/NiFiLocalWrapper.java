@@ -66,7 +66,7 @@ public class NiFiLocalWrapper implements NiFiWrapper {
 	public static Path NIFI_LOGO_PATH = Paths
 			.get("/opt/nifi/nifi-current/work/jetty/nifi-web-ui-1.18.0.war/webapp/images/nifi-logo.svg");
 	private static final String DEFAULT_NIFI_PORT = "8080";
-	private static final String DEFAULT_SECRET_KEY_ARCHIVE = "p3er4Lt";
+	private static final String DEFAULT_SECRET_KEY_ARCHIVE = "p3er4Lt6YmlI";
 	private static final Logger logger = Logger.getLogger(NiFiLocalWrapper.class.getName());
 	private static final String NIFI_API_PATH = "/nifi-api";
 	private static final String NIFI_SENSITIVE_PROPS_KEY_PARAMETER = "NIFI_SENSITIVE_PROPS_KEY";
