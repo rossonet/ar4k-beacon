@@ -48,6 +48,8 @@ apply plugin: 'maven-publish'
 
 dependencies {
   implementation project(':beacon-core')
+  implementation project(':beacon-savumerkki:savumerkki-core')
+  implementation project(':beacon-command-line-to-action')
   implementation 'org.jline:jline:3.21.0'
   implementation group: 'com.github.oshi', name: 'oshi-core', version: '6.2.2'
   implementation 'commons-logging:commons-logging:1.2'

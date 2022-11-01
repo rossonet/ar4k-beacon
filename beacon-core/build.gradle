@@ -34,8 +34,10 @@ apply plugin: 'signing'
 apply plugin: 'maven-publish'
 
 dependencies {
-  api project(':beacon-opcua-wrapper') 
   api group: 'org.json', name: 'json', version: '20220924'
+  api project(':beacon-opcua-wrapper')
+  api project(':beacon-brain:ar4k-brain-api')
+  api group: 'org.jeasy', name: 'easy-rules', version: '4.1.0', ext: 'pom'
   // NiFi Rest API Client and Registry Client
   // https://mvnrepository.com/artifact/org.apache.nifi.registry/nifi-registry-client
   // https://nifi.apache.org/docs/nifi-registry-docs/index.html
@@ -44,19 +46,8 @@ dependencies {
   api "com.github.hermannpencole:nifi-swagger-client:1.1.0"
   // Keycloak admin client - https://www.keycloak.org/docs-api/18.0/rest-api/
   api group: 'org.keycloak', name: 'keycloak-admin-client', version: '19.0.3'
-  // Zeppelin Client https://zeppelin.apache.org/docs/0.10.1/usage/zeppelin_sdk/client_api.html
-  // https://zeppelin.apache.org/docs/0.10.1/usage/rest_api/
-  api group: 'org.apache.zeppelin', name: 'zeppelin-client', version: '0.10.1'
-  // Flink Client https://flink.apache.org/
-  api group: 'org.apache.flink', name: 'flink-java', version: '1.15.2'
-  api group: 'org.apache.flink', name: 'flink-streaming-java', version: '1.15.2'
-  api group: 'org.apache.flink', name: 'flink-clients', version: '1.15.2'
-  // Opc UA Milo https://github.com/eclipse/milo
-  api group: 'org.eclipse.milo', name: 'sdk-client', version: '0.6.8'
-  api group: 'org.eclipse.milo', name: 'sdk-server', version: '0.6.8'
-  api group: 'org.eclipse.milo', name: 'dictionary-manager', version: '0.6.8'
-  api group: 'org.eclipse.milo', name: 'dictionary-reader', version: '0.6.8'
-  api group: 'org.eclipse.milo', name: 'bsd-parser-core', version: '0.3.8'
+
+
   // Logger implementation
   implementation 'org.slf4j:slf4j-api:2.0.3'
 
@@ -65,7 +56,6 @@ dependencies {
   testImplementation group: 'com.ginsberg', name: 'junit5-system-exit', version: '1.1.2'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
   testImplementation 'org.slf4j:slf4j-simple:2.0.3'
-  testImplementation group: 'org.apache.flink', name: 'flink-test-utils-junit', version: '1.15.2'
 }
 
 task eclipseClosedDependencies {}
