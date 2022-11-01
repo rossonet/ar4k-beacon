@@ -34,6 +34,7 @@ apply plugin: 'signing'
 apply plugin: 'maven-publish'
 
 dependencies {
+  api project(':beacon-opcua-wrapper') 
   api group: 'org.json', name: 'json', version: '20220924'
   // NiFi Rest API Client and Registry Client
   // https://mvnrepository.com/artifact/org.apache.nifi.registry/nifi-registry-client

@@ -1,0 +1,12 @@
+[submodule "beacon-command-line-to-action"]
+	path = beacon-command-line-to-action
+	url = git@github.com:rossonet/command-line-to-action.git
+[submodule "beacon-savumerkki"]
+	path = beacon-savumerkki
+	url = git@github.com:rossonet/Savumerkki.git
+[submodule "beacon-brain"]
+	path = beacon-brain
+	url = git@github.com:rossonet/ar4k-brain.git
+[submodule "beacon-opcua-wrapper"]
+	path = beacon-opcua-wrapper
+	url = git@github.com:rossonet/ar4k-opcua.git
