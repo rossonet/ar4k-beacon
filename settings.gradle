@@ -22,6 +22,7 @@ include 'savumerkki-core'
 include 'savumerkki-savuctl'
 include 'ar4k-brain-api'
 include 'ar4k-brainctl'
+include 'beacon-nifi-opcua-service-and-processor'
 rootProject.children.each {project ->
   switch( project.name ) {
     case 'savumerkki-core': project.projectDir = new File('beacon-savumerkki/savumerkki-core'); break

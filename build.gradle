@@ -82,3 +82,9 @@ task generateTemplateNifiPlugin {
   dependsOn(":beacon-template-nifi-processor:nar")
   dependsOn(":beacon-template-nifi-service:nar")
 }
+
+task generateOpcUaNifiPlugin {
+  group "build NiFi"
+  description 'Build OPC UA plugin in nar format'
+  dependsOn(":beacon-nifi-opcua-service-and-processor:nar")
+}
