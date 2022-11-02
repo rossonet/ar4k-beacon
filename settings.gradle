@@ -16,8 +16,17 @@ include 'beacon-core'
 include 'beacon-beaconctl'
 include 'beacon-template-nifi-processor'
 include 'beacon-template-nifi-service'
-include 'beacon-brain:ar4k-brain-api'
 include 'beacon-command-line-to-action'
 include 'beacon-opcua-wrapper'
-include 'beacon-savumerkki:savumerkki-core'
-
+include 'savumerkki-core'
+include 'savumerkki-savuctl'
+include 'ar4k-brain-api'
+include 'ar4k-brainctl'
+rootProject.children.each {project ->
+  switch( project.name ) {
+    case 'savumerkki-core': project.projectDir = new File('beacon-savumerkki/savumerkki-core'); break
+    case 'savumerkki-savuctl': project.projectDir = new File("beacon-savumerkki/savumerkki-savuctl"); break
+    case 'ar4k-brain-api': project.projectDir = new File('beacon-brain/ar4k-brain-api'); break
+    case 'ar4k-brainctl': project.projectDir = new File('beacon-brain/ar4k-brainctl'); break
+  }
+} 
