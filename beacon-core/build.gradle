@@ -37,6 +37,7 @@ dependencies {
   api group: 'org.json', name: 'json', version: '20220924'
   api project(':beacon-opcua-wrapper')
   api project(':ar4k-brain-api')
+  api group: 'net.rossonet.commons', name: 'rossonet-helper', version: '0.3.1' // TODO to 0.3.2
   // NiFi Rest API Client and Registry Client
   // https://mvnrepository.com/artifact/org.apache.nifi.registry/nifi-registry-client
   // https://nifi.apache.org/docs/nifi-registry-docs/index.html
