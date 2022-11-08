@@ -3,6 +3,8 @@ package net.rossonet.beacon.utils;
 import java.io.IOException;
 import java.util.Base64;
 
+import org.rossonet.utils.TextHelper;
+
 public final class DnsHelper {
 
 	public static String toDnsRecord(final String name, final String payload) throws IOException {

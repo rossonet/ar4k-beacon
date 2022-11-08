@@ -1,5 +1,5 @@
 description = "java library to manage the data flow in IIoT context"
-group = 'org.rossonet.beacon'
+group = 'net.rossonet.beacon'
 version = '0.1.0'
 
 ext {

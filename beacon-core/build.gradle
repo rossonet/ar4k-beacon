@@ -37,7 +37,7 @@ dependencies {
   api group: 'org.json', name: 'json', version: '20220924'
   api project(':beacon-opcua-wrapper')
   api project(':ar4k-brain-api')
-  api group: 'org.jeasy', name: 'easy-rules', version: '4.1.0'
+  api group: 'net.rossonet.commons', name: 'rossonet-helper', version: '0.3.1' // TODO to 0.3.2
   // NiFi Rest API Client and Registry Client
   // https://mvnrepository.com/artifact/org.apache.nifi.registry/nifi-registry-client
   // https://nifi.apache.org/docs/nifi-registry-docs/index.html
@@ -52,7 +52,7 @@ dependencies {
   implementation 'org.slf4j:slf4j-api:2.0.3'
 
   // Test Tools
-  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.1'
   testImplementation group: 'com.ginsberg', name: 'junit5-system-exit', version: '1.1.2'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
   testImplementation 'org.slf4j:slf4j-simple:2.0.3'
