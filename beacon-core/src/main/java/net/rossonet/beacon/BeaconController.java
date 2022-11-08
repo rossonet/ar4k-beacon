@@ -5,6 +5,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
+import org.rossonet.utils.LogHelper;
+
 import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.client.model.AccessStatusEntity;
 
@@ -13,7 +15,6 @@ import net.rossonet.beacon.milo.OpcUaServerParameters;
 import net.rossonet.beacon.milo.OpcUaServerStorage;
 import net.rossonet.beacon.milo.OpcUaServerWrapper;
 import net.rossonet.beacon.nifi.NiFiWrapper;
-import net.rossonet.beacon.utils.LogHelper;
 import net.rossonet.beacon.web.BeaconWebAppWrapper;
 
 public class BeaconController implements AutoCloseable {
@@ -57,16 +58,6 @@ public class BeaconController implements AutoCloseable {
 		stop();
 	}
 
-	private void fireNifiError(final Exception e) {
-		// TODO verificare come comportarsi in casi di mancata risposta di NiFi
-		logger.severe("exception trying NiFi API client\n" + LogHelper.stackTraceToString(e, 15));
-
-	}
-
-	private void fireNifiRestore(final AccessStatusEntity accessStatusEntity) {
-		logger.info("AccessStatus to NiFi " + accessStatusEntity.toString());
-	}
-
 	public ExecutorService getExecutorService() {
 		return executorService;
 	}
@@ -96,6 +87,68 @@ public class BeaconController implements AutoCloseable {
 		startNifi();
 		startWebApp();
 		running = true;
+	}
+
+	public void stop() {
+		running = false;
+		try {
+			if (opcUaServer != null) {
+				opcUaServer.stopOpcServer();
+			}
+		} catch (final Exception e) {
+			logger.severe("exception stopping opcUaServer\n" + LogHelper.stackTraceToString(e));
+		}
+		try {
+			if (wepAppWrapper != null) {
+				wepAppWrapper.stopWebApp();
+			}
+		} catch (final Exception e) {
+			logger.severe("exception stopping wepAppWrapper\n" + LogHelper.stackTraceToString(e));
+		}
+
+		try {
+			if (nifiWrapper != null) {
+				nifiWrapper.stopNifi();
+			}
+		} catch (final Exception e) {
+			logger.severe("exception stopping nifiWrapper\n" + LogHelper.stackTraceToString(e));
+		}
+
+		try {
+			if (keycloakWrapper != null) {
+				keycloakWrapper.stopKeycloak();
+			}
+		} catch (final Exception e) {
+			logger.severe("exception stopping keycloakWrapper\n" + LogHelper.stackTraceToString(e));
+		}
+	}
+
+	public void waitTermination() {
+		while (running) {
+			try {
+				Thread.sleep(WHILE_DELAY);
+				tryNifiClient();
+			} catch (final InterruptedException e) {
+				logger.severe("interrupted wait thread\n" + LogHelper.stackTraceToString(e));
+			}
+
+		}
+
+	}
+
+	public void wipe() {
+		// TODO implementare distruzione file locali
+
+	}
+
+	private void fireNifiError(final Exception e) {
+		// TODO verificare come comportarsi in casi di mancata risposta di NiFi
+		logger.severe("exception trying NiFi API client\n" + LogHelper.stackTraceToString(e, 15));
+
+	}
+
+	private void fireNifiRestore(final AccessStatusEntity accessStatusEntity) {
+		logger.info("AccessStatus to NiFi " + accessStatusEntity.toString());
 	}
 
 	private void startKeycloak() {
@@ -160,40 +213,6 @@ public class BeaconController implements AutoCloseable {
 
 	}
 
-	public void stop() {
-		running = false;
-		try {
-			if (opcUaServer != null) {
-				opcUaServer.stopOpcServer();
-			}
-		} catch (final Exception e) {
-			logger.severe("exception stopping opcUaServer\n" + LogHelper.stackTraceToString(e));
-		}
-		try {
-			if (wepAppWrapper != null) {
-				wepAppWrapper.stopWebApp();
-			}
-		} catch (final Exception e) {
-			logger.severe("exception stopping wepAppWrapper\n" + LogHelper.stackTraceToString(e));
-		}
-
-		try {
-			if (nifiWrapper != null) {
-				nifiWrapper.stopNifi();
-			}
-		} catch (final Exception e) {
-			logger.severe("exception stopping nifiWrapper\n" + LogHelper.stackTraceToString(e));
-		}
-
-		try {
-			if (keycloakWrapper != null) {
-				keycloakWrapper.stopKeycloak();
-			}
-		} catch (final Exception e) {
-			logger.severe("exception stopping keycloakWrapper\n" + LogHelper.stackTraceToString(e));
-		}
-	}
-
 	private void tryNifiClient() {
 		try {
 			final AccessStatusEntity result = nifiWrapper.getWebClientApi().getAccessStatus();
@@ -217,24 +236,6 @@ public class BeaconController implements AutoCloseable {
 			niFiCheckOk = false;
 
 		}
-	}
-
-	public void waitTermination() {
-		while (running) {
-			try {
-				Thread.sleep(WHILE_DELAY);
-				tryNifiClient();
-			} catch (final InterruptedException e) {
-				logger.severe("interrupted wait thread\n" + LogHelper.stackTraceToString(e));
-			}
-
-		}
-
-	}
-
-	public void wipe() {
-		// TODO implementare distruzione file locali
-
 	}
 
 }

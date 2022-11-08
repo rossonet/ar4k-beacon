@@ -16,13 +16,13 @@ import java.util.concurrent.FutureTask;
 import java.util.logging.Logger;
 
 import org.json.JSONObject;
+import org.rossonet.utils.LogHelper;
 
 import com.github.hermannpencole.nifi.swagger.ApiClient;
 import com.github.hermannpencole.nifi.swagger.Configuration;
 import com.github.hermannpencole.nifi.swagger.client.AccessApi;
 
 import net.rossonet.beacon.BeaconController;
-import net.rossonet.beacon.utils.LogHelper;
 import net.rossonet.beacon.utils.SynchronizeHelper;
 
 public class NiFiLocalWrapper implements NiFiWrapper {

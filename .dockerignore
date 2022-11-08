@@ -16,6 +16,7 @@ a.*.tmp
 *.key
 *.pem
 vagrant
+beacon-data
 
 ### OUTPUT ###
 spring-shell.log
