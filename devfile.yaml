@@ -1,0 +1,13 @@
+schemaVersion: 2.1.0
+metadata:
+  name: gradle-java-dev
+components: []
+commands:
+  - exec:
+      commandLine: ./gradlew clean build --info --no-daemon
+      component: tools
+      group:
+        isDefault: true
+        kind: build
+      workingDir: '${PROJECT_SOURCE}'
+    id: gradle-build
