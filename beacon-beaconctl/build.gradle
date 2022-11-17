@@ -51,7 +51,7 @@ dependencies {
   implementation project(':savumerkki-core')
   implementation project(':beacon-command-line-to-action')
   implementation 'org.jline:jline:3.21.0'
-  implementation group: 'com.github.oshi', name: 'oshi-core', version: '6.2.2'
+  implementation group: 'com.github.oshi', name: 'oshi-core', version: '6.3.2'
   implementation 'commons-logging:commons-logging:1.2'
   // testing
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.1'
