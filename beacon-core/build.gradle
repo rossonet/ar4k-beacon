@@ -45,7 +45,7 @@ dependencies {
   // https://github.com/hermannpencole/nifi-swagger-client
   api "com.github.hermannpencole:nifi-swagger-client:1.1.0"
   // Keycloak admin client - https://www.keycloak.org/docs-api/18.0/rest-api/
-  api group: 'org.keycloak', name: 'keycloak-admin-client', version: '19.0.3'
+  api group: 'org.keycloak', name: 'keycloak-admin-client', version: '20.0.4'
 
 
   // Logger implementation
